@@ -1,0 +1,463 @@
+<title>MIA Konfigurátor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: control rail on the left, 3D schematic fills the rest; stacks on phones. */
+:root{
+  --bg:#eef1f5; --panel:#ffffff; --fg:#141a24; --muted:#5b6678; --line:#d3d9e3;
+  --accent:#1f5fd6; --accent-soft:#e3ecfb; --warn:#b4540a; --ok:#1d7f4f;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+  --sans:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1118; --panel:#151b25; --fg:#e6ebf3; --muted:#8e9ab0; --line:#28313f;
+  --accent:#5b8cff; --accent-soft:#1a2740; --warn:#f0a35a; --ok:#58c48b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1118; --panel:#151b25; --fg:#e6ebf3; --muted:#8e9ab0; --line:#28313f;
+  --accent:#5b8cff; --accent-soft:#1a2740; --warn:#f0a35a; --ok:#58c48b; color-scheme:dark}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px;box-sizing:border-box}
+.app{display:grid;grid-template-columns:320px minmax(0,1fr);gap:14px;height:100%;min-height:560px}
+@media (max-width:760px){.app{grid-template-columns:1fr;grid-template-rows:auto minmax(380px,1fr);height:auto}}
+.rail{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0;overflow:auto}
+h1{font-size:17px;margin:0;letter-spacing:.2px}
+.sub{color:var(--muted);margin:2px 0 0;font-size:12.5px}
+.step{display:flex;flex-direction:column;gap:6px;padding-top:10px;border-top:1px solid var(--line)}
+.step label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:flex;justify-content:space-between}
+.step label code{font-family:var(--mono);text-transform:none;letter-spacing:0;color:var(--fg)}
+.row{display:flex;gap:8px;align-items:center}
+input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
+input[type=number],select{font:inherit;font-family:var(--mono);background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:84px}
+select{width:100%;font-family:var(--sans)}
+input:focus,select:focus,button:focus{outline:2px solid var(--accent);outline-offset:1px}
+.derived{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12.5px;font-variant-numeric:tabular-nums}
+.derived span:nth-child(2n){font-family:var(--mono);text-align:right}
+.msg{font-size:12.5px;border-radius:6px;padding:8px 10px;background:var(--accent-soft)}
+.msg.warn{color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,transparent)}
+.msg.ok{color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;font-size:12.5px;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:6px;padding:6px 10px;cursor:pointer}
+button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.view{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:380px}
+canvas{display:block;width:100%;height:100%}
+.lbl{position:absolute;transform:translate(8px,-50%);font-family:var(--mono);font-size:11px;padding:2px 6px;border-radius:4px;background:var(--panel);border:1px solid var(--line);white-space:nowrap;pointer-events:none}
+.legend{position:absolute;left:10px;bottom:10px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--muted);pointer-events:none}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.hint{position:absolute;right:10px;top:10px;font-size:11.5px;color:var(--muted);pointer-events:none}
+small.foot{color:var(--muted);font-size:11.5px}
+.steps{margin:4px 0 0;padding-left:20px;font-size:12px;color:var(--muted);display:grid;gap:2px}
+.steps li.on{color:var(--fg);font-weight:600}
+.steps li.done{color:var(--ok)}
+</style>
+
+<div class="app">
+  <aside class="rail">
+    <div>
+      <h1>MIA konfigurátor</h1>
+      <p class="sub">Burst pouch töltő–klipszelő–hegesztő. Sematikus térbeli elrendezés a kiszerelés-preset alapján.</p>
+    </div>
+
+    <div class="step">
+      <label for="size">Kiszerelés</label>
+      <select id="size">
+        <optgroup label="Kicsi zacskó (1 l alatt)"><option>330 ml</option><option>500 ml</option><option>670 ml</option><option>750 ml</option></optgroup>
+        <optgroup label="Nagy zacskó (1 l és felette)"><option>1 l</option><option>1,5 l</option><option>1,8 l</option><option>2,25 l</option></optgroup>
+      </select>
+      <div class="derived" id="preset"></div>
+      <small class="foot">A kiszerelés választja a zacskó-konfigurációt; a klipsz- és hegesztési vonal a presetből jön.</small>
+    </div>
+
+    <div class="step">
+      <label>Ciklus animáció</label>
+      <div class="btns"><button id="c_run">▶ Ciklus indítása</button><button id="c_stop">■ Stop</button></div>
+      <label for="c_spd" style="margin-top:4px">Sebesség <code id="c_spd_val">1.0×</code></label>
+      <div class="row"><input type="range" id="c_spd" min="0.25" max="4" step="0.25" value="1"></div>
+      <label for="c_gap">Szünet a lépések között <code id="c_gap_val">0.5 s</code></label>
+      <div class="row"><input type="range" id="c_gap" min="0" max="3" step="0.1" value="0.5"></div>
+      <ol class="steps" id="c_steps"></ol>
+    </div>
+
+    <div class="step">
+      <label>Számított értékek</label>
+      <div class="derived" id="derived"></div>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="step">
+      <label>Nézet</label>
+      <div class="btns">
+        <button id="b_iso" class="on">Izometrikus</button>
+        <button id="b_side">Oldal (zacskó síkja)</button>
+        <button id="b_front">Elöl</button>
+        <button id="b_house">Burkolat</button>
+        <button id="b_reset">Alaphelyzet</button>
+      </div>
+    </div>
+    <small class="foot">Fix adatok: zacskószélesség PE 180 / alu 220, ház 515×340 mm alapterület; a magasság a nagy zacskóhoz nő. Húzd az egérrel a forgatáshoz, görgő a zoomhoz.</small>
+  </aside>
+
+  <section class="view" id="view">
+    <div class="hint">Forgatás: húzás · Zoom: görgő</div>
+    <div class="legend">
+      <span><i style="background:#f08a24"></i>Izocianát (MDI)</span>
+      <span><i style="background:#8fd3ff"></i>Vízüveg</span>
+      <span><i style="background:#c9ced6"></i>Alu tasak</span>
+      <span><i style="background:#e4c266"></i>Klipszelő</span>
+      <span><i style="background:#e06060"></i>Hegesztő</span>
+      <span><i style="background:#8a8f99"></i>Simítók / vákuum</span>
+      <span><i style="background:#6f8fe0"></i>Töltőrudak</span>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  // ---------- fixed geometry (mm) ----------
+  const FIX = { W:515, D:340, H:1140, peW:180, peH:550, aluW:220, aluH:285, pouchZ0:200, clipLen:220, cupD:40, rodD:12 };
+  // pouch configurations: the package size selects one
+  const CFG = {
+    kicsi: { name:'Kicsi zacskó', k:255, w:192, peH:550, aluH:285 },
+    nagy:  { name:'Nagy zacskó',  k:380, w:345, peH:800, aluH:450 },
+  };
+  // measured fill heights per package size (mm): ISO from the pouch bottom, water glass from the clip line
+  const SIZES = {
+    '330 ml':{cfg:'kicsi', iso:100, wg:70},  '500 ml':{cfg:'kicsi', iso:120, wg:90},
+    '670 ml':{cfg:'kicsi', iso:120, wg:110}, '750 ml':{cfg:'kicsi', iso:120, wg:110},
+    '1 l':{cfg:'nagy', iso:130, wg:120},     '1,5 l':{cfg:'nagy', iso:150, wg:145},
+    '1,8 l':{cfg:'nagy', iso:250, wg:145},   '2,25 l':{cfg:'nagy', iso:310, wg:165},
+  };
+  function applyPreset(){ const sz=SIZES[state.size]||SIZES['330 ml']; const c=CFG[sz.cfg]; state.isoFill=sz.iso; state.wgFill=sz.wg; state.k=c.k; state.w=c.w; FIX.peH=c.peH; FIX.aluH=c.aluH; FIX.H=FIX.pouchZ0+c.peH+20+350+20; state.cfg=c; }
+  const S = 0.001;
+  const state = { k:255, w:192, size:'330 ml', housing:true, rodA:'up', rodB:'up', cfg:null };
+
+  // ---------- scene ----------
+  const view = document.getElementById('view');
+  const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  view.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.05, 50);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 0.9));
+  const key = new THREE.DirectionalLight(0xffffff, 0.7); key.position.set(-2,-3,4); scene.add(key);
+  const fillL = new THREE.DirectionalLight(0xffffff, 0.3); fillL.position.set(3,2,2); scene.add(fillL);
+  scene.up = new THREE.Vector3(0,0,1); camera.up.set(0,0,1);
+
+  // orbit (minimal, self-contained)
+  const orbit = { theta:-0.8, phi:1.15, r:2.6, target:new THREE.Vector3(0,0,FIX.H*S/2) };
+  function updateCam(){
+    const t=orbit.target, p=orbit.phi, th=orbit.theta, r=orbit.r;
+    camera.position.set(t.x + r*Math.sin(p)*Math.cos(th), t.y + r*Math.sin(p)*Math.sin(th), t.z + r*Math.cos(p));
+    camera.lookAt(t);
+  }
+  let drag=null;
+  renderer.domElement.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY}; renderer.domElement.setPointerCapture(e.pointerId);});
+  renderer.domElement.addEventListener('pointermove',e=>{ if(!drag)return; orbit.theta-= (e.clientX-drag.x)*0.008; orbit.phi=Math.min(2.9,Math.max(0.2,orbit.phi-(e.clientY-drag.y)*0.008)); drag={x:e.clientX,y:e.clientY}; });
+  renderer.domElement.addEventListener('pointerup',()=>drag=null);
+  renderer.domElement.addEventListener('wheel',e=>{e.preventDefault(); orbit.r=Math.min(6,Math.max(0.8,orbit.r*(1+Math.sign(e.deltaY)*0.08)));},{passive:false});
+
+  // ---------- materials ----------
+  const M = {
+    house: new THREE.MeshStandardMaterial({color:0x2b4a86, transparent:true, opacity:0.16, roughness:0.2, side:THREE.DoubleSide, depthWrite:false}),
+    frame: new THREE.MeshStandardMaterial({color:0xaeb6c2, roughness:0.5}),
+    alu:   new THREE.MeshStandardMaterial({color:0xc9ced6, roughness:0.35, metalness:0.6, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false}),
+    pe:    new THREE.MeshStandardMaterial({color:0xd8f0ff, roughness:0.1, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false}),
+    mdi:   new THREE.MeshStandardMaterial({color:0xf08a24, roughness:0.2, transparent:true, opacity:0.9, side:THREE.DoubleSide}),
+    wg:    new THREE.MeshStandardMaterial({color:0x8fd3ff, roughness:0.1, transparent:true, opacity:0.8, side:THREE.DoubleSide}),
+    clip:  new THREE.MeshStandardMaterial({color:0xe4c266, roughness:0.5}),
+    weld:  new THREE.MeshStandardMaterial({color:0xe06060, roughness:0.5}),
+    grey:  new THREE.MeshStandardMaterial({color:0x8a8f99, roughness:0.6}),
+    rod:   new THREE.MeshStandardMaterial({color:0x6f8fe0, roughness:0.3, metalness:0.5}),
+    cyl:   new THREE.MeshStandardMaterial({color:0x9aa3b2, roughness:0.4, metalness:0.6}),
+    rubber:new THREE.MeshStandardMaterial({color:0x2a2e36, roughness:0.9}),
+    cap:   new THREE.MeshStandardMaterial({color:0x1a1e26, roughness:0.6, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false}),
+  };
+  const edgeMat = new THREE.LineBasicMaterial({color:0x7f8ba0, transparent:true, opacity:0.5});
+
+  // ---------- helpers (mm in, metres out) ----------
+  const dyn = new THREE.Group(); scene.add(dyn);     // rebuilt on parameter change
+  const fixed = new THREE.Group(); scene.add(fixed); // built once
+  function box(g, sx,sy,sz, x,y,z, mat, edges){
+    const m = new THREE.Mesh(new THREE.BoxGeometry(sx*S,sy*S,sz*S), mat); m.position.set(x*S,y*S,z*S); g.add(m);
+    if(edges){ const e=new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry), edgeMat); e.position.copy(m.position); g.add(e); }
+    return m;
+  }
+  function cyl(g, r,h, x,y,z, axis, mat){
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r*S,r*S,h*S,24), mat);
+    if(axis==='X') m.rotation.z=Math.PI/2; else if(axis==='Y') m.rotation.x=0; else m.rotation.x=Math.PI/2;
+    m.position.set(x*S,y*S,z*S); g.add(m); return m;
+  }
+  function line(g, pts, color, dashed){
+    const geo = new THREE.BufferGeometry().setFromPoints(pts.map(p=>new THREE.Vector3(p[0]*S,p[1]*S,p[2]*S)));
+    const mat = dashed ? new THREE.LineDashedMaterial({color, dashSize:0.012, gapSize:0.008}) : new THREE.LineBasicMaterial({color});
+    const l = new THREE.Line(geo, mat); if(dashed) l.computeLineDistances(); g.add(l); return l;
+  }
+
+  // ---------- fixed part ----------
+  const housing = new THREE.Group(); fixed.add(housing);
+  const drawer = new THREE.Group(); fixed.add(drawer);        // frame + pouches + liquids: moves along Y
+  const drawerDyn = new THREE.Group(); drawer.add(drawerDyn); // liquids (rebuilt on parameter change)
+  const cups = {L:new THREE.Group(), R:new THREE.Group()}; fixed.add(cups.L, cups.R);
+  const statics = new THREE.Group(); fixed.add(statics);
+  const pistons = {A:null, B:null};
+  function clear(g){ while(g.children.length) g.remove(g.children[0]); }
+  // ---- deformable pouch: parametric tube; cross-section = stadium whose radius grows with the opening ----
+  const pouches = {alu:null, pe:null};
+  const NU=40, NV=60, OPEN_R=45;
+  function makePouch(g, W, Hh, z0, thick, mat, extra){
+    const geo=new THREE.BufferGeometry();
+    const pos=new Float32Array((NU+1)*(NV+1)*3); geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    const idx=[]; for(let v=0;v<NV;v++) for(let u=0;u<NU;u++){ const a=v*(NU+1)+u, b=a+1, c=a+NU+1, d=c+1; idx.push(a,c,b, b,c,d); }
+    geo.setIndex(idx);
+    const m=new THREE.Mesh(geo, mat); m.userData={W,Hh,z0,thick,extra}; m.renderOrder=1; g.add(m); return m;
+  }
+  const CAP=4;                                   // segments per rounded seam edge; the rest go to the two flat faces
+  const ramp=(d,w)=>Math.max(0,Math.min(1,d/w));
+  // opening factor 0..1 at height z: vacuum cups open the top; filled chambers stay bulged; jaws press bands flat
+  // returns {cup, liq, flat}: cup = vacuum opening (pulls the seams inward), liq = liquid bulge (faces only, seams stay),
+  // flat = 0..1 jaw flattening at this height
+  function profileF(z, p){
+    const z0=FIX.pouchZ0, peTop=z0+FIX.peH, cz=A.clipZ||0, wz=A.weldZ||0;
+    let liq=0;
+    if(p.mdi>0){ const top=z0+Math.min(state.isoFill,A.mdiH)*p.mdi; liq=Math.max(liq, 0.6*ramp(z-z0,20)*ramp(top-z,12)); }
+    if(p.wg>0){ const bot=cz+8, top=bot+Math.min(state.wgFill,A.wgH)*p.wg; liq=Math.max(liq, 0.6*ramp(z-bot,20)*ramp(top-z,12)); }
+    // seams: follow the cups while the film is empty; where liquid sits, the shape set at filling is kept (no re-inflation when the vacuum releases)
+    // below the weld line the sealed pouch keeps its opened shape when the vacuum releases; only the film above the weld collapses
+    const held=Math.max(p.cupsOpen, p.cupsOpenMax||0), above=ramp(z-wz,12);
+    const open=held*(1-above)+p.cupsOpen*above;
+    const cup=open*Math.pow(ramp(z-z0, peTop-z0),0.7);
+    const band=(zc,amt)=>amt*Math.exp(-Math.pow((z-zc)/22,2));          // jaws flatten a ~40 mm band
+    const keep=Math.max(0,1-band(cz,p.clipFlat)-band(wz,p.weldFlat));
+    return {cup:cup*keep, liq:liq*keep};
+  }
+  // cross-section numbers for a film of width W: face offset xf and flat half-length a
+  function section(W, thick, extra, f){
+    const rCup=OPEN_R*f.cup, r=Math.max(rCup, OPEN_R*f.liq);
+    return { xf: thick + r + extra*f.cup, a: Math.max(0,(W-Math.PI*rCup)/2) };   // seams move only with the vacuum opening
+  }
+  function ring(P,k,xf,a){                       // one cross-section row: stadium, NU+1 points
+    const nFlat=(NU-2*CAP)/2;
+    for(let u=0;u<=NU;u++){
+      let x,y;
+      if(u<=nFlat){ x=xf; y=-a+2*a*u/nFlat; }
+      else if(u<=nFlat+CAP){ const ang=Math.PI*(u-nFlat)/CAP; x=xf*Math.cos(ang); y=a+xf*Math.sin(ang); }
+      else if(u<=2*nFlat+CAP){ x=-xf; y=a-2*a*(u-nFlat-CAP)/nFlat; }
+      else { const ang=Math.PI*(u-2*nFlat-CAP)/CAP; x=-xf*Math.cos(ang); y=-a-xf*Math.sin(ang); }
+      P[k++]=x*S; P[k++]=y*S;
+    }
+    return k;
+  }
+  const NL=24;
+  function makeLiquid(g, zBottom, h, mat){
+    const rows=NL+3, geo=new THREE.BufferGeometry();
+    const pos=new Float32Array((NU+1)*rows*3); geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+    const idx=[]; for(let v=0;v<rows-1;v++) for(let u=0;u<NU;u++){ const a=v*(NU+1)+u, b=a+1, c=a+NU+1, d=c+1; idx.push(a,c,b, b,c,d); }
+    geo.setIndex(idx);
+    const m=new THREE.Mesh(geo, mat); m.userData={zBottom,h}; m.renderOrder=2; g.add(m); return m;
+  }
+  function updateLiquid(m, fill, p){
+    const {zBottom,h}=m.userData, P=m.geometry.attributes.position.array, Wl=FIX.peW-6, hh=Math.max(0.5,h*fill);
+    const tmp=new Float32Array((NU+1)*2); let k=0;
+    for(let v=0;v<NL+3;v++){
+      const vv=Math.max(0,Math.min(NL,v-1)), z=zBottom+hh*vv/NL, cap=(v===0||v===NL+2);
+      const sec=section(Wl,3,0,profileF(z,p)), xf=cap?0:sec.xf, a=cap?0:sec.a;
+      ring(tmp,0,xf,a);
+      for(let u=0;u<=NU;u++){ P[k++]=tmp[2*u]; P[k++]=tmp[2*u+1]; P[k++]=z*S; }
+    }
+    m.visible=fill>0.005;
+    m.geometry.attributes.position.needsUpdate=true; m.geometry.computeVertexNormals();
+  }
+  function updatePouch(m, p){
+    const {W,Hh,z0,thick,extra}=m.userData, P=m.geometry.attributes.position.array;
+    let k=0;
+    for(let v=0;v<=NV;v++){
+      const z=z0+Hh*v/NV, {xf,a}=section(W,thick,extra,profileF(z,p));
+      const tmp=new Float32Array((NU+1)*2); ring(tmp,0,xf,a);
+      for(let u=0;u<=NU;u++){ P[k++]=tmp[2*u]; P[k++]=tmp[2*u+1]; P[k++]=z*S; }
+    }
+    m.geometry.attributes.position.needsUpdate=true; m.geometry.computeVertexNormals();
+  }
+  function buildFixed(){
+    clear(housing); clear(statics); clear(cups.L); clear(cups.R);
+    for(const c of [...drawer.children]) if(c!==drawerDyn) drawer.remove(c);
+    const {W,D,H}=FIX;
+    box(housing, W,D,H-52, 0,0,40+(H-52)/2, M.house, true).renderOrder=10;
+    box(housing, W,D,40, 0,0,20, M.cap).renderOrder=10; box(housing, W,D,12, 0,0,H-6, M.cap).renderOrder=10;
+    for(const sx of [-1,1]) for(const sy of [-1,1]) box(statics, 30,30,H-86, sx*(W/2-25), sy*(D/2-25), H/2, M.frame);   // posts end 3 mm clear of the plinth and the cap (no coplanar faces)
+    // drawer frame: two vertical bars (y=±125), bottom bar; slides stay in the machine
+    const yb=FIX.aluW/2+15, zb0=FIX.pouchZ0-35, zb1=FIX.pouchZ0+FIX.peH+40;
+    for(const s of [-1,1]) box(drawer, 28,22,zb1-zb0, 0,s*yb,(zb0+zb1)/2, M.frame, true);
+    box(drawer, 28,2*yb+22,22, 0,0,zb0+11, M.frame, true);
+    box(drawer, 28,(D/2-6)-(yb-11),22, 0,-(D/2-6+yb-11)/2,zb0+11, M.frame);
+    box(drawer, 190,8,zb1-zb0+120, 0,-D/2-4,(zb0+zb1)/2, M.house, true).renderOrder=10;   // drawer front plate: drawn last, no depth write, so the film behind it stays visible
+    for(const sx of [-1,1]) box(statics, 12,D-50,32, sx*24,0,zb0-6, M.grey);
+    // pouches travel with the drawer; deformable: flat film -> opens to a Ø90 (r=45) cylinder at the top
+    pouches.alu = makePouch(drawer, FIX.aluW, FIX.aluH, FIX.pouchZ0, 6, M.alu, 3);
+    pouches.pe  = makePouch(drawer, FIX.peW,  FIX.peH,  FIX.pouchZ0, 4.5, M.pe, 0);
+    // vacuum cups at the PE top (group origin on the pouch face, moves in X)
+    const zc=FIX.pouchZ0+FIX.peH-22;
+    for(const [s,g] of [[-1,cups.L],[1,cups.R]]){ cyl(g, FIX.cupD/2,8, s*4,0,0,'X',M.rubber); cyl(g, 5,70, s*43,0,0,'X',M.grey); g.position.set(s*7*S,0,zc*S); }
+    for(const s of [-1,1]){ cyl(statics, 13,70, s*125,0,zc,'X',M.cyl); }
+    // side guided fill cylinders (ISO left, WG right)
+    for(const [s,stroke,key] of [[-1,350,'A'],[1,150,'B']]){
+      const x=s*150, y=125, top=FIX.pouchZ0+FIX.peH+8, len=stroke+70;
+      cyl(statics, 20,len, x,y,top-len/2,'Z',M.cyl); box(statics, 70,50,10, x,y,top-5, M.rubber); box(statics, 70,50,10, x,y,top-len+5, M.rubber);
+      pistons[key]={top, stroke};
+    }
+    const g = new THREE.Mesh(new THREE.CircleGeometry(1.2,48), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0.08, side:THREE.DoubleSide, depthWrite:false}));
+    g.position.z=-0.004; g.renderOrder=0; statics.add(g);   // kept clear of the plinth's underside so the two never z-fight
+    orbit.target.z = H*S/2;
+  }
+
+  // ---------- dynamic part (depends on k / w) ----------
+  const labels = [];
+  function addLabel(text, x,y,z){
+    const el=document.createElement('div'); el.className='lbl'; el.textContent=text; view.appendChild(el);
+    labels.push({el, pos:new THREE.Vector3(x*S,y*S,z*S)}); return el;
+  }
+  const A = {};   // animated objects: clipL/R, weldL/R, rodA/B, mdi, wg, geometry numbers
+  function rebuild(){
+    applyPreset(); buildFixed();
+    document.getElementById('preset').innerHTML = [['Konfiguráció', state.cfg.name],['bottom_To_klipsz', state.k+' mm'],['klipsz_To_weld', state.w+' mm'],['PE zacskó', FIX.peH+' × '+FIX.peW],['Alu tasak', FIX.aluH+' × '+FIX.aluW],['Izo töltési magasság', state.isoFill+' mm'],['Vízüveg töltési magasság', state.wgFill+' mm']]
+      .map(r=>'<span>'+r[0]+'</span><span>'+r[1]+'</span>').join('');
+    while(dyn.children.length) dyn.remove(dyn.children[0]);
+    while(drawerDyn.children.length) drawerDyn.remove(drawerDyn.children[0]);
+    labels.forEach(l=>l.el.remove()); labels.length=0;
+    const z0=FIX.pouchZ0, clipZ=z0+state.k, weldZ=clipZ+state.w, peTop=z0+FIX.peH, aluTop=z0+FIX.aluH;
+    const L=FIX.clipLen;
+    Object.assign(A,{clipZ,weldZ,peTop,z0});
+    // liquids: pouch-shaped solids (side wall + top/bottom caps) that follow the film's cross-section
+    A.mdiH=Math.max(1,(clipZ-8)-(z0+6)); A.wgH=Math.max(1,(weldZ-10)-(clipZ+8));
+    A.mdi = makeLiquid(drawerDyn, z0, Math.min(state.isoFill, A.mdiH), M.mdi);
+    A.wg  = makeLiquid(drawerDyn, clipZ+8, Math.min(state.wgFill, A.wgH), M.wg);
+    // clip station: moving heads (holder, clip, rod, smoother) + fixed cylinders
+    for(const s of [-1,1]){
+      const g=new THREE.Group(); dyn.add(g); g.position.set(s*60*S,0,clipZ*S); A[s<0?'clipL':'clipR']=g;
+      box(g, 22,L+14,34, s*11,0,0, M.clip, true); box(g, 10,L,10, s*(-5),0,0, M.clip);
+      cyl(g, 8,60, s*30,0,0,'X',M.grey); box(g, 14,L+14,24, s*13,0,-29, M.grey); cyl(g, 8,L, s*6,0,-40,'Y',M.grey);
+      cyl(dyn, 20,110, s*150,0,clipZ,'X',M.cyl);
+    }
+    // weld station
+    for(const s of [-1,1]){
+      const g=new THREE.Group(); dyn.add(g); g.position.set(s*60*S,0,weldZ*S); A[s<0?'weldL':'weldR']=g;
+      box(g, 16,L+10,28, s*8,0,0, M.weld, true); cyl(g, 8,60, s*30,0,0,'X',M.grey);
+      box(g, 14,L+24,24, s*10,0,-26, M.grey); cyl(g, 8,L+10, s*6,0,-40,'Y',M.grey);
+      cyl(dyn, 20,110, s*150,0,weldZ,'X',M.cyl);
+    }
+    // fill rods: group origin = carriage in the DOWN (filling) position; lift = stroke when up
+    const carZ=peTop+20;
+    for(const [s,lineZ,stroke,key] of [[-1,clipZ,350,'A'],[1,weldZ,150,'B']]){
+      const g=new THREE.Group(); dyn.add(g); g.position.set(0,0,carZ*S); A['rod'+key]=g; g.userData={stroke, tipDown:lineZ-30};
+      const x=s*28, tipDown=lineZ-30, len=carZ+20-tipDown;
+      cyl(g, FIX.rodD/2,len, x,0,(tipDown-carZ)+len/2,'Z',M.rod); cyl(g, 8,16, x,0,(tipDown-carZ)+8,'Z',M.rod);
+      box(g, 150-28+20,22,12, s*(150+28)/2,125,21, M.rod); box(g, 22,137,12, x,62,21, M.rod); box(g, 76,56,14, s*150,125,7, M.rubber);   // L-arm sits on top of the carriage block (no shared faces)
+      const pr=cyl(g, 8,10, s*150,125,0,'Z',M.grey); pr.userData={}; A['piston'+key]=pr;   // piston rod between cylinder top and carriage (length follows the lift)
+      A['lbl'+key]=addLabel('', x,-FIX.D/2-10,tipDown);
+    }
+    // reference lines + labels
+    const ext=FIX.D/2+10;
+    line(dyn, [[0,-ext,clipZ],[0,ext,clipZ]], 0xe4c266, true);
+    line(dyn, [[0,-ext,weldZ],[0,ext,weldZ]], 0xe06060, true);
+    for(const z of [z0,aluTop,peTop]) line(dyn, [[0,-ext,z],[0,ext,z]], 0x8a8f99, true);
+    addLabel('klipsz  '+state.k+' mm  (z '+clipZ+')', 0,ext,clipZ);
+    addLabel('hegesztés  +'+state.w+' mm  (z '+weldZ+')', 0,ext,weldZ);
+    addLabel('zacskó alja  (z '+z0+')', 0,ext,z0); addLabel('alu teteje  '+FIX.aluH, 0,ext,aluTop); addLabel('PE teteje  '+FIX.peH, 0,ext,peTop);
+    // derived values + checks
+    const d=document.getElementById('derived');
+    const aluOver=FIX.aluH-state.k, weldFromBottom=state.k+state.w, headroom=FIX.peH-weldFromBottom, isoRoom=(state.k-8)-state.isoFill, wgRoom=(state.w-18)-state.wgFill;
+    d.innerHTML = [['Szükséges gépmagasság', FIX.H+' mm'],['Hegesztés a zacskó aljától', weldFromBottom+' mm'],['Alu tasak a klipsz felett', aluOver+' mm'],
+      ['PE szabad perem a hegesztés felett', headroom+' mm'],['Izo szint és a klipsz között', isoRoom+' mm'],['Vízüveg szint és a hegesztés között', wgRoom+' mm']]
+      .map(r=>'<span>'+r[0]+'</span><span>'+r[1]+'</span>').join('');
+    const msg=document.getElementById('msg'); msg.className='msg';
+    if(isoRoom<10||wgRoom<10){ msg.classList.add('warn'); msg.textContent='A töltési szint túl közel van a klipsz/hegesztés vonalához (izo: '+isoRoom+' mm, vízüveg: '+wgRoom+' mm).'; }
+    else if(headroom<40){ msg.classList.add('warn'); msg.textContent='A hegesztési vonal túl közel van a PE zacskó tetejéhez ('+headroom+' mm): a vákuumkorongoknak és a töltőcsőnek nincs helye.'; }
+    else if(aluOver<10){ msg.classList.add('warn'); msg.textContent='A klipsz az alu tasak tetejénél vagy felette van: a klipsz nem fogja az alufóliát.'; }
+    else if(aluOver>60){ msg.classList.add('warn'); msg.textContent='A klipsz mélyen az alu tasakban van ('+aluOver+' mm fólia marad felette); a kinyúló PE rész rövid.'; }
+    else { msg.classList.add('ok'); msg.textContent='Elrendezés rendben: '+aluOver+' mm alufólia a klipsz felett, '+headroom+' mm PE perem a hegesztés felett.'; }
+    applyPose(pose);
+  }
+
+  // ---------- pose (0..1 values) ----------
+  const pose = { drawer:0, cups:0, cupsOpen:0, rodA:0, rodB:0, mdi:1, wg:1, clip:0, weld:0, clipFlat:0, weldFlat:0 };
+  // rodA/rodB: 0 = up (extended), 1 = down (filling). cups: 0 = retracted, 1 = on the pouch. cupsOpen: 0..1 pulled apart.
+  function applyPose(p){
+    p.cupsOpenMax=Math.max(p.cupsOpenMax||0, p.cupsOpen);
+    drawer.position.y = -0.32*p.drawer;
+    for(const [s,g] of [[-1,cups.L],[1,cups.R]]){ const x = 8.5 + (1-p.cups)*60 + p.cupsOpen*OPEN_R; g.position.x = s*x*S; g.rotation.y = -s*0.03*p.cupsOpen; }
+    if(pouches.pe&&A.mdi){ updatePouch(pouches.pe, p); updatePouch(pouches.alu, p); updateLiquid(A.mdi, p.mdi, p); updateLiquid(A.wg, p.wg, p); }
+    for(const [key,pr] of [['A',pistons.A],['B',pistons.B]]){
+      const g=A['rod'+key]; if(!g) continue; const lift=g.userData.stroke*(1-p['rod'+key]);
+      g.position.z=(A.peTop+20+lift)*S;
+      const rod=A['piston'+key]; if(rod&&pr){ const len=Math.max(2,(A.peTop+20+lift)-pr.top); rod.scale.y=len/10; rod.position.z=-len*S/2; }
+      const lbl=A['lbl'+key]; const tip=g.userData.tipDown+lift; lbl.textContent=(key==='A'?'izo cső vége':'vízüveg cső vége')+'  z '+Math.round(tip); labels.find(l=>l.el===lbl).pos.z=tip*S;
+    }
+    if(A.clipL){ A.clipL.position.x=-(60-52*p.clip)*S; A.clipR.position.x=(60-52*p.clip)*S; }
+    if(A.weldL){ A.weldL.position.x=-(60-52*p.weld)*S; A.weldR.position.x=(60-52*p.weld)*S; }
+  }
+
+  // ---------- cycle animation ----------
+  const ease=u=>u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
+  const STEPS = [
+    {n:'Fiók betolása (tasak + klipszek bent)', d:1.6, f:u=>{pose.drawer=1-u;}},
+    {n:'Vákuumkorongok rácuppannak', d:0.6, f:u=>{pose.cups=u;}},
+    {n:'Zacskó szétnyitása: Ø90 henger középen, szélek behúzva', d:0.9, f:u=>{pose.cupsOpen=u;}},
+    {n:'Izo töltőcső le (350 mm)', d:1.2, f:u=>{pose.rodA=u;}},
+    {n:'Izocianát töltése', d:2.0, f:u=>{pose.mdi=u;}},
+    {n:'Izo töltőcső fel', d:1.2, f:u=>{pose.rodA=1-u;}},
+    {n:'Klipszelés (két henger, 3+3 kN): a zacskó laposra nyomva a klipsz síkjában', d:0.8, f:u=>{pose.clip=u; pose.clipFlat=u;}},
+    {n:'Klipszelő nyit, a klipsz térelválasztó marad', d:0.6, f:u=>{pose.clip=1-u;}},
+    {n:'Vízüveg töltőcső le (150 mm)', d:0.8, f:u=>{pose.rodB=u;}},
+    {n:'Vízüveg töltése', d:1.6, f:u=>{pose.wg=u;}},
+    {n:'Vízüveg töltőcső fel', d:0.8, f:u=>{pose.rodB=1-u;}},
+    {n:'Hegesztés (5 mm sáv, fűtőszál): a zacskó laposra nyomva a hegesztés síkjában', d:1.4, f:u=>{pose.weld=Math.min(1,u*3); pose.weldFlat=Math.min(1,u*3);}},
+    {n:'Hegesztő nyit', d:0.5, f:u=>{pose.weld=1-u;}},
+    {n:'Vákuum elenged', d:0.5, f:u=>{pose.cupsOpen=1-u; pose.cups=1-u;}},
+    {n:'Fiók kihúzása, a kész (teli) termék kivétele', d:1.6, f:u=>{pose.drawer=u;}},
+    {n:'Új tasak behelyezése', d:0.4, f:u=>{ if(u>=1){pose.mdi=0;pose.wg=0;pose.clipFlat=0;pose.weldFlat=0;pose.cupsOpenMax=0;} }},
+  ];
+  const anim = { running:false, step:-1, t:0, gapLeft:0 };
+  const stepList=document.getElementById('c_steps');
+  stepList.innerHTML = STEPS.map(s=>'<li>'+s.n+'</li>').join('');
+  const lis=[...stepList.children];
+  function markStep(i){ lis.forEach((li,j)=>{ li.className = j<i?'done': j===i?'on':''; }); }
+  function startCycle(){ Object.assign(pose,{drawer:1,cups:0,cupsOpen:0,cupsOpenMax:0,rodA:0,rodB:0,mdi:0,wg:0,clip:0,weld:0,clipFlat:0,weldFlat:0}); anim.running=true; anim.step=0; anim.t=0; anim.gapLeft=0; markStep(0); setRodBtns(); }
+  function stopCycle(){ anim.running=false; anim.step=-1; markStep(-1); Object.assign(pose,{drawer:0,cups:0,cupsOpen:0,cupsOpenMax:0,mdi:1,wg:1,clip:0,weld:0,clipFlat:0,weldFlat:0, rodA:state.rodA==='down'?1:0, rodB:state.rodB==='down'?1:0}); applyPose(pose); }
+  function tick(dt){
+    if(!anim.running) return;
+    const spd=+document.getElementById('c_spd').value, gap=+document.getElementById('c_gap').value;
+    if(anim.gapLeft>0){ anim.gapLeft-=dt*spd; return; }
+    const st=STEPS[anim.step]; anim.t+=dt*spd; const u=Math.min(1,anim.t/st.d); st.f(ease(u)); applyPose(pose);
+    if(u>=1){ anim.step++; anim.t=0; anim.gapLeft=gap; if(anim.step>=STEPS.length){ anim.step=0; Object.assign(pose,{drawer:1,mdi:0,wg:0,clipFlat:0,weldFlat:0,cupsOpenMax:0}); } markStep(anim.step); }
+  }
+  document.getElementById('c_run').addEventListener('click',startCycle);
+  document.getElementById('c_stop').addEventListener('click',stopCycle);
+  for(const [id,fmt] of [['c_spd',v=>(+v).toFixed(2).replace(/\.?0+$/,'')+'×'],['c_gap',v=>(+v).toFixed(1)+' s']]){
+    const el=document.getElementById(id), out=document.getElementById(id+'_val'); el.addEventListener('input',()=>out.textContent=fmt(el.value)); out.textContent=fmt(el.value);
+  }
+
+  // ---------- UI wiring ----------
+  document.getElementById('size').addEventListener('change',e=>{ state.size=e.target.value; rebuild(); save(); });
+  const btns={iso:[-0.8,1.15,2.6], side:[0,1.45,2.4], front:[-Math.PI/2,1.45,2.4]};   // side = from +X: the pouch face; front = from -Y: the operator's view, pouch edge-on
+  for(const k in btns) document.getElementById('b_'+k).addEventListener('click',()=>{ [orbit.theta,orbit.phi,orbit.r]=btns[k]; mark(k); });
+  function mark(k){ for(const j in btns) document.getElementById('b_'+j).classList.toggle('on', j===k); }
+  function setRodBtns(){}
+  document.getElementById('b_house').addEventListener('click',e=>{ state.housing=!state.housing; housing.visible=state.housing; e.target.classList.toggle('on',state.housing); });
+  document.getElementById('b_house').classList.add('on');
+  document.getElementById('b_reset').addEventListener('click',()=>{ stopCycle(); document.getElementById('size').value='330 ml'; state.size='330 ml'; rebuild(); state.rodA=state.rodB='up'; pose.rodA=pose.rodB=0; applyPose(pose); setRodBtns(); [orbit.theta,orbit.phi,orbit.r]=btns.iso; mark('iso'); });
+  function save(){ try{ localStorage.setItem('mia_cfg', JSON.stringify({size:state.size})); }catch(e){} }
+  try{ const s=JSON.parse(localStorage.getItem('mia_cfg')||'null'); if(s&&s.size&&SIZES[s.size]){document.getElementById('size').value=s.size; state.size=s.size;} }catch(e){}
+
+  // ---------- loop ----------
+  function resize(){ const w=view.clientWidth, h=view.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(view); resize();
+  const tmp=new THREE.Vector3(); let last=performance.now();
+  function frame(now){
+    const dt=Math.min(0.1,(now-last)/1000); last=now; tick(dt);
+    updateCam(); renderer.render(scene,camera);
+    const w=view.clientWidth, h=view.clientHeight;
+    for(const l of labels){ tmp.copy(l.pos).project(camera); const vis=tmp.z<1; l.el.style.display=vis?'block':'none'; l.el.style.left=((tmp.x+1)/2*w)+'px'; l.el.style.top=((1-tmp.y)/2*h)+'px'; }
+    requestAnimationFrame(frame);
+  }
+  rebuild(); setRodBtns(); requestAnimationFrame(frame);
+})();
+</script>
