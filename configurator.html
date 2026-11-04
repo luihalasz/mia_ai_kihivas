@@ -449,7 +449,8 @@ small.foot{color:var(--muted);font-size:11.5px}
     // floor under the stand: catches the soft shadow only
     const g = new THREE.Mesh(new THREE.PlaneGeometry(6,6), new THREE.ShadowMaterial({opacity:0.42}));
     g.position.z=-0.702; g.receiveShadow=true; statics.add(g);
-    orbit.target.z = (H-260)*S/2;
+    // orbit around the middle of the film as it sits in the machine (drawer closed: x=0, y=0)
+    orbit.target.set(0, 0, (FIX.pouchZ0 + FIX.peH/2)*S);
   }
 
   // ---- smoother: D-profile bar, bowed in the top view like ")(" when open, straight "||" when the jaws meet ----

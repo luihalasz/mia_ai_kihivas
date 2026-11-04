@@ -56,7 +56,7 @@ window.ERD_I18N = {
     it: 'Nel configuratore puoi riprodurre l’intero ciclo per ogni formato; il trailer di presentazione arriva presto.' },
   'Sematikus 3D, ciklusanimáció, HU / EN / IT.': { en: 'Schematic 3D, cycle animation, HU / EN / IT.', it: '3D schematico, animazione del ciclo, HU / EN / IT.' },
   'Reveal trailer': { it: 'Trailer di presentazione' },
-  'Két perc, sejtelmes. Hamarosan.': { en: 'Two minutes, mysterious. Coming soon.', it: 'Due minuti, misterioso. Presto.' },
+  'Egy perc, sejtelmes. Hamarosan.': { en: 'One minute, mysterious. Coming soon.', it: 'Un minuto, misterioso. Presto.' },
   'Minden, ami a gépbe kerül: méretek, anyagok.': { en: 'Everything that goes into the machine: sizes, materials.', it: 'Tutto ciò che entra nella macchina: misure, materiali.' },
 
   'Kihúzott fiók a kész, töltött tasakkal': { en: 'Drawer pulled out with the finished, filled pouch', it: 'Cassetto estratto con la busta finita e riempita' },

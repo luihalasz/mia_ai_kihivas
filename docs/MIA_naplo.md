@@ -14,7 +14,7 @@ A cél egy új burst-pouch töltő–klipszelő–hegesztő gép (MIA, azaz Many
 - a **böngészős 3D konfigurátort** a ciklus animációjával (Three.js, `configurator.html`),
 - a **renderképeket** (Blender Cycles),
 - a **honlapot** három nyelven (HU/EN/IT),
-- egy **~40 másodperces bemutatóvideót**,
+- egy **~1 perces bemutatóvideót**,
 - és ezt a **naplót**.
 
 Szinte semmit nem rajzoltam kézzel: mindent kód generál, így minden méret egy helyen, paraméterként változtatható.
@@ -78,7 +78,14 @@ Ezen a napon készült el:
    - a tablet karra került, mert korábban belelógott a gép falába.
 4. **Új renderek** a saját GPU-n: kihúzott fiók tasakkal; a gép állványon, teljes háromszínű jelzőlámpával, fekete kijelzővel.
 5. **Klipszpár rajz** az én kézi vázlatom alapján. Kétszer kellett javítani, mire a C-profil vége pontosan egy vonalba került a nyolcas derekával.
-6. **~41 másodperces videó**, teljesen Blenderben, kódból: 5 jelenet, 900 képkocka, magyar feliratok, zárókártya. Ezeket az előnyöket mutatja be a Manyika 1-hez képest:
+6. **~1 perces videó**, teljesen Blenderben, kódból. Az első változat 41 mp-es volt, 720p-ben, magyar feliratokkal. Visszajelzés után lett belőle:
+   - 61 mp, 5 jelenet, 1400 képkocka, angol feliratok, jobb tömörítés és több render-minta. Az 1080p ~4,5 óra renderidő lett volna, ezért a határidő miatt 720p maradt (~2 óra);
+   - amiről épp szó van, annak a körvonala kétszer sárgán felvillan (a compositorban, egy külön „maszk” render-rétegből);
+   - a 4 gépes jelenetben minden fiók nyitva van, és az operátor balról jobbra haladva egyenként zárja be őket;
+   - a végén Polinvent logó és „Coming soon in 2027”;
+   - kódból szintetizált „hype” trailer-zene (numpy), a villanásokra hangeffekttel.
+
+   A videó ezeket az előnyöket mutatja be a Manyika 1-hez képest:
    - nyomásos töltés fröcsögés nélkül a direkt perisztaltika helyett;
    - zárt burkolat: a munkahenger nem csípheti oda a kezet;
    - fiókos fóliabehelyezés vakon fűzés helyett;
@@ -95,6 +102,8 @@ Ezen a napon készült el:
 - **Windows PowerShell sajátosságok:** ékezetes szkriptek elromlottak, és a kis- és nagybetűt nem megkülönböztető változónevek miatt egy kép üresre íródott felül. A Claude észrevette és javította.
 - **Blender 5.2 API változás:** a videó exportnál megváltozott a beállítás neve (`media_type = 'VIDEO'`). Hibaüzenet alapján egy sorral javítva.
 - **Képkivágás:** a hős-képen először levágódott a jelzőlámpa teteje, és a kijelzőn egy furcsa kék téglalap volt. Kamera-állítás és „teljesen fekete, menő” kijelző lett belőle.
+- **Sárga körvonal:** a maszk rétegben a többi kiemelendő alkatrész (pl. az üvegburkolat) fekete falként eltakarta a fóliát, ezért nem jelent meg a körvonala. Ezek az alkatrészek most átlátszók, amíg nem rajtuk a sor.
+- **4 gép másolása:** az eredeti gépet már a másolás előtt eltoltam, így a másolatok rossz helyre kerültek. A tesztképkockán látszott, a sorrend cseréjével megoldódott.
 - **Szóhasználat:** a „Skid” szót nem ismertem, ezért „Ellátóegység” lett belőle.
 
 ## 4. Példa promptok (szó szerint, a 3. napról)
@@ -112,6 +121,10 @@ Ezen a napon készült el:
 > generálj egy kb. 40másodperces videót arról ami bemutatja hogyan használja ezt egy operátor majd és mennyivel jobb ez mint az előző Manyika egyes. Fő előnyök: …
 
 > most elmegyek enni, ugyhogy ne akadj meg visszakérdésen *(a videó ezalatt készült el, kb. 80 perc GPU-renderrel)*
+
+> A videón javíts úgy, hogy a feliratozása angolul legyen, ne legyen ennyire gyors és pixeles, és amiről éppen szó van, annak az objektumnak a körvonala kétszer egymás után sárgán felvillan … Tegyél alá hype tech trailer aláfestő zenét.
+
+> A konfigurátor ne a gép közepére zoomoljon rá, hanem arra a pontra ami a fólia közepe lenne amikor a gépben bent van
 
 ## 5. Tanulságok
 
