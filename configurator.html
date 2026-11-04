@@ -41,9 +41,23 @@ button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .view{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-height:380px}
 canvas{display:block;width:100%;height:100%}
 .lbl{position:absolute;transform:translate(8px,-50%);font-family:var(--mono);font-size:11px;padding:2px 6px;border-radius:4px;background:var(--panel);border:1px solid var(--line);white-space:nowrap;pointer-events:none}
-.legend{position:absolute;left:10px;bottom:10px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--muted);pointer-events:none}
+.legend{position:absolute;left:10px;bottom:10px;right:150px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--muted);pointer-events:none}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 .hint{position:absolute;right:10px;top:10px;font-size:11.5px;color:var(--muted);pointer-events:none}
+.flags{position:absolute;right:10px;top:30px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none}
+.flags span{font-size:12px;padding:4px 8px;border-radius:6px;background:color-mix(in srgb,var(--warn) 16%,var(--panel));color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
+.ctl{position:absolute;right:14px;bottom:40px;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.switch{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch .track{width:34px;height:20px;border-radius:10px;background:var(--line);position:relative;transition:background .15s}
+.switch .track::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.switch input:checked+.track{background:#3d8f5f}
+.switch input:checked+.track::after{left:17px}
+.switch input:focus-visible+.track{outline:2px solid var(--accent);outline-offset:2px}
+.bigbtn{min-width:120px;height:52px;padding:0 22px;border-radius:12px;border:0;font-size:15px;font-weight:600;letter-spacing:.04em;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18);transition:transform .1s,background .15s}
+.bigbtn:active{transform:scale(.97)}
+.bigbtn.start{background:#3d8f5f}
+.bigbtn.run{background:#c9972e}
 small.foot{color:var(--muted);font-size:11.5px}
 .steps{margin:4px 0 0;padding-left:20px;font-size:12px;color:var(--muted);display:grid;gap:2px}
 .steps li.on{color:var(--fg);font-weight:600}
@@ -69,11 +83,9 @@ small.foot{color:var(--muted);font-size:11.5px}
 
     <div class="step">
       <label>Ciklus animáció</label>
-      <div class="btns"><button id="c_run">▶ Ciklus indítása</button><button id="c_stop">■ Stop</button></div>
       <label for="c_spd" style="margin-top:4px">Sebesség <code id="c_spd_val">1.0×</code></label>
       <div class="row"><input type="range" id="c_spd" min="0.25" max="3" step="0.25" value="1"></div>
-      <label for="c_gap">Szünet a lépések között <code id="c_gap_val">0.5 s</code></label>
-      <div class="row"><input type="range" id="c_gap" min="0" max="3" step="0.1" value="0.5"></div>
+      <input type="hidden" id="c_gap" value="0.5">
       <ol class="steps" id="c_steps"></ol>
     </div>
 
@@ -98,6 +110,11 @@ small.foot{color:var(--muted);font-size:11.5px}
 
   <section class="view" id="view">
     <div class="hint">Forgatás: húzás · Zoom: görgő</div>
+    <div class="flags" id="flags"></div>
+    <div class="ctl">
+      <label class="switch" for="c_auto"><input type="checkbox" id="c_auto" checked><span class="track"></span>Autostart</label>
+      <button id="c_toggle" class="bigbtn run" type="button">Ciklus megy</button>
+    </div>
     <div class="legend">
       <span><i style="background:#f08a24"></i>Izocianát (MDI)</span>
       <span><i style="background:#8fd3ff"></i>Vízüveg</span>
@@ -128,10 +145,17 @@ small.foot{color:var(--muted);font-size:11.5px}
     '1 l':{cfg:'nagy', iso:130, wg:120},     '1,5 l':{cfg:'nagy', iso:150, wg:145},
     '1,8 l':{cfg:'nagy', iso:250, wg:145},   '2,25 l':{cfg:'nagy', iso:310, wg:165},
   };
-  function applyPreset(){ const sz=SIZES[state.size]||SIZES['330 ml']; const c=CFG[sz.cfg]; state.isoFill=sz.iso; state.wgFill=sz.wg; state.k=c.k; state.w=c.w; FIX.peH=c.peH; FIX.aluH=c.aluH; const peTop=FIX.pouchZ0+c.peH; state.strokeA=400; state.strokeB=300;
-    // machine height: the highest moving point is the L-arm top in the UP position (carriage at peTop+20+stroke, arm 27 above it);
-    // keep 20 mm clearance under the 12 mm top cap
-    FIX.H=peTop+20+Math.max(state.strokeA,state.strokeB)+27+20+12; state.cfg=c; }   // strokes are fixed; the cylinders are mounted so the tube tip reaches 30 mm under its line when retracted
+  function applyPreset(){ const sz=SIZES[state.size]||SIZES['330 ml']; const c=CFG[sz.cfg]; state.isoFill=sz.iso; state.wgFill=sz.wg; state.k=c.k; state.w=c.w; FIX.peH=c.peH; FIX.aluH=c.aluH; const peTop=FIX.pouchZ0+c.peH;
+    state.strokeA=475; state.tubeA=490;                              // ISO: minimum common tube/stroke for both presets (large pouch sets it)
+    state.strokeB=140; state.tubeB=155;                              // water glass: minimum common tube/stroke (small pouch sets it)
+    // carriage heights in the DOWN position (tube top sits 20 mm above the carriage origin); the mount differs per preset:
+    //   ISO: tip 30 mm under the clip line;  water glass: tip 10 mm under the weld line
+    state.carA=(FIX.pouchZ0+c.k-30)+state.tubeA-20; state.carB=(FIX.pouchZ0+c.k+c.w-10)+state.tubeB-20;
+    // one machine for both pouch sizes: the housing is sized for the large pouch and stays the same for the small one;
+    const big=CFG.nagy;
+    const carAmax=(FIX.pouchZ0+big.k-30)+state.tubeA-20, carBmax=(FIX.pouchZ0+big.k+big.w-10)+state.tubeB-20;
+    FIX.H=Math.max(carAmax+state.strokeA, carBmax+state.strokeB)+27+20;      // machine height = highest moving element (L-arm top, UP position) + 20 mm
+    state.cfg=c; }   // strokes are fixed; the cylinders are mounted so the tube tip reaches 30 mm under its line when retracted
   const S = 0.001;
   const state = { k:255, w:192, size:'330 ml', housing:true, rodA:'up', rodB:'up', cfg:null };
 
@@ -290,11 +314,17 @@ small.foot{color:var(--muted);font-size:11.5px}
     box(housing, W,D,40, 0,0,20, M.cap).renderOrder=10; box(housing, W,D,12, 0,0,H-6, M.cap).renderOrder=10;
     for(const sx of [-1,1]) for(const sy of [-1,1]) box(statics, 30,30,H-86, sx*(W/2-25), sy*(D/2-25), H/2, M.frame);   // posts end 3 mm clear of the plinth and the cap (no coplanar faces)
     // drawer frame: two vertical bars (y=±125), bottom bar; slides stay in the machine
-    const yb=FIX.aluW/2+15, zb0=FIX.pouchZ0-35, zb1=FIX.pouchZ0+FIX.peH+40;
+    // the drawer is one part for both pouch sizes: its frame is sized for the large pouch
+    const peHmax=Math.max(...Object.values(CFG).map(c=>c.peH));
+    const yb=FIX.aluW/2+15, zb0=FIX.pouchZ0-35, zb1=FIX.pouchZ0+peHmax+40;
     for(const s of [-1,1]) box(drawer, 28,22,zb1-zb0, 0,s*yb,(zb0+zb1)/2, M.frame, true);
     box(drawer, 28,2*yb+22,22, 0,0,zb0+11, M.frame, true);
     box(drawer, 28,(D/2-6)-(yb-11),22, 0,-(D/2-6+yb-11)/2,zb0+11, M.frame);
     box(drawer, 190,8,zb1-zb0+120, 0,-D/2-4,(zb0+zb1)/2, M.house, true).renderOrder=10;   // drawer front plate: drawn last, no depth write, so the film behind it stays visible
+    // vertical pull handle on the drawer front, centred: two standoffs + a 160 mm bar, black
+    const hz=(zb0+zb1)/2;
+    for(const e of [-1,1]) cyl(drawer, 6,22, 0,-D/2-19,hz+e*70,'Y',M.rubber);
+    cyl(drawer, 9,160, 0,-D/2-30,hz,'Z',M.rubber);
     for(const sx of [-1,1]) box(statics, 12,D-50,32, sx*24,0,zb0-6, M.grey);
     // pouches travel with the drawer; deformable: flat film -> opens to a Ø90 (r=45) cylinder at the top
     pouches.alu = makePouch(drawer, FIX.aluW, FIX.aluH, FIX.pouchZ0, 6, M.alu, 3);
@@ -305,7 +335,7 @@ small.foot{color:var(--muted);font-size:11.5px}
     for(const s of [-1,1]){ cyl(statics, 13,70, s*125,0,zc,'X',M.cyl); }
     // side guided fill cylinders (ISO left, WG right)
     for(const [s,stroke,key] of [[-1,state.strokeA,'A'],[1,state.strokeB,'B']]){
-      const x=s*150, y=125, top=FIX.pouchZ0+FIX.peH+8, len=stroke+70;   // body length follows the stroke
+      const x=s*150, y=125, top=(key==='A'?state.carA:state.carB)-12, len=stroke+70;   // body top just under the carriage's DOWN position
       cyl(statics, 20,len, x,y,top-len/2,'Z',M.cyl); box(statics, 70,50,10, x,y,top-5, M.rubber); box(statics, 70,50,10, x,y,top-len+5, M.rubber);
       pistons[key]={top, stroke};
     }
@@ -348,7 +378,7 @@ small.foot{color:var(--muted);font-size:11.5px}
   const A = {};   // animated objects: clipL/R, weldL/R, rodA/B, mdi, wg, geometry numbers
   function rebuild(){
     applyPreset(); buildFixed();
-    document.getElementById('preset').innerHTML = [['Konfiguráció', state.cfg.name],['bottom_To_klipsz', state.k+' mm'],['klipsz_To_weld', state.w+' mm'],['PE zacskó', FIX.peH+' × '+FIX.peW],['Alu tasak', FIX.aluH+' × '+FIX.aluW],['Izo töltési magasság', state.isoFill+' mm'],['Vízüveg töltési magasság', state.wgFill+' mm'],['Izo henger lökete', state.strokeA+' mm (fix)'],['Vízüveg henger lökete', state.strokeB+' mm (fix)']]
+    document.getElementById('preset').innerHTML = [['Konfiguráció', state.cfg.name],['bottom_To_klipsz', state.k+' mm'],['klipsz_To_weld', state.w+' mm'],['PE zacskó', FIX.peH+' × '+FIX.peW],['Alu tasak', FIX.aluH+' × '+FIX.aluW],['Izo töltési magasság', state.isoFill+' mm'],['Vízüveg töltési magasság', state.wgFill+' mm'],['Izo cső / löket', state.tubeA+' / '+state.strokeA+' mm (fix)'],['Vízüveg cső / löket', state.tubeB+' / '+state.strokeB+' mm (fix)'],['Izo henger teteje (lent)', Math.round(state.carA-12)+' mm'],['Vízüveg henger teteje (lent)', Math.round(state.carB-12)+' mm']]
       .map(r=>'<span>'+r[0]+'</span><span>'+r[1]+'</span>').join('');
     while(dyn.children.length) dyn.remove(dyn.children[0]);
     while(drawerDyn.children.length) drawerDyn.remove(drawerDyn.children[0]);
@@ -363,7 +393,8 @@ small.foot{color:var(--muted);font-size:11.5px}
     // clip station: moving heads (holder, clip, rod, smoother) + fixed cylinders
     for(const s of [-1,1]){
       const g=new THREE.Group(); dyn.add(g); g.position.set(s*60*S,0,clipZ*S); A[s<0?'clipL':'clipR']=g;
-      box(g, 22,L+14,34, s*11,0,0, M.clip, true); box(g, 10,L,10, s*(-5),0,0, M.clip);
+      box(g, 22,L+14,34, s*11,0,0, M.clip, true);
+      A['clipP'+(s<0?'L':'R')] = box(dyn, 10,L,10, s*55,0,clipZ, M.clip, true);   // the clip piece itself: inserted by the operator, stays on the pouch after clipping
       cyl(g, 8,60, s*30,0,0,'X',M.grey); box(g, 14,L+14,24, s*13,0,-29, M.grey); A.smooth.push(makeSmoother(g, L, s, -10, -40));   // flat face flush with the clip's inner face
       cyl(dyn, 20,110, s*150,0,clipZ,'X',M.cyl);
     }
@@ -375,11 +406,12 @@ small.foot{color:var(--muted);font-size:11.5px}
       cyl(dyn, 20,110, s*150,0,weldZ,'X',M.cyl);
     }
     // fill rods: group origin = carriage in the DOWN (filling) position; lift = stroke when up
-    const carZ=peTop+20;
     for(const [s,lineZ,stroke,key] of [[-1,clipZ,state.strokeA,'A'],[1,weldZ,state.strokeB,'B']]){
-      // priority: the tip clears the pouch by 25 mm in the UP position; the DOWN position follows from the fixed stroke
-      const tipDown=peTop+25-stroke;
-      const g=new THREE.Group(); dyn.add(g); g.position.set(0,0,carZ*S); A['rod'+key]=g; g.userData={stroke, tipDown};
+      const carZ = key==='A' ? state.carA : state.carB;
+      // ISO: the tip clears the pouch by 25 mm in the UP position, the DOWN position follows from the fixed stroke.
+      // Water glass: the tip stops exactly 10 mm under the weld line in the DOWN position, the UP position follows.
+      const tipDown = key==='A' ? lineZ-30 : lineZ-10;
+      const g=new THREE.Group(); dyn.add(g); g.position.set(0,0,carZ*S); A['rod'+key]=g; g.userData={stroke, tipDown, car:carZ};
       const x=s*28, len=carZ+20-tipDown;
       cyl(g, FIX.rodD/2,len, x,0,(tipDown-carZ)+len/2,'Z',M.rod); cyl(g, 8,16, x,0,(tipDown-carZ)+8,'Z',M.rod);
       box(g, 150-28+20,22,12, s*(150+28)/2,125,21, M.rod); box(g, 22,137,12, x,62,21, M.rod); box(g, 76,56,14, s*150,125,7, M.rubber);   // L-arm sits on top of the carriage block (no shared faces)
@@ -395,9 +427,9 @@ small.foot{color:var(--muted);font-size:11.5px}
     addLabel('zacskó alja  (z '+z0+')', 0,ext,z0); addLabel('alu teteje  '+FIX.aluH, 0,ext,aluTop); addLabel('PE teteje  '+FIX.peH, 0,ext,peTop);
     // derived values + checks
     const d=document.getElementById('derived');
-    const aluOver=FIX.aluH-state.k, weldFromBottom=state.k+state.w, headroom=FIX.peH-weldFromBottom, isoRoom=(state.k-8)-state.isoFill, wgRoom=(state.w-18)-state.wgFill, isoDn=(FIX.peH+25-state.strokeA)-state.k, wgDn=(FIX.peH+25-state.strokeB)-(state.k+state.w);
-    d.innerHTML = [['Szükséges gépmagasság', FIX.H+' mm'],['Hegesztés a zacskó aljától', weldFromBottom+' mm'],['Alu tasak a klipsz felett', aluOver+' mm'],
-      ['PE szabad perem a hegesztés felett', headroom+' mm'],['Izo szint és a klipsz között', isoRoom+' mm'],['Vízüveg szint és a hegesztés között', wgRoom+' mm'],['Izo csővég lent, a klipszhez', (isoDn>=0?'+':'')+isoDn+' mm'],['Vízüveg csővég lent, a hegesztéshez', (wgDn>=0?'+':'')+wgDn+' mm']]
+    const aluOver=FIX.aluH-state.k, weldFromBottom=state.k+state.w, headroom=FIX.peH-weldFromBottom, isoRoom=(state.k-8)-state.isoFill, wgRoom=(state.w-18)-state.wgFill, isoUp=(state.k-30+state.strokeA)-FIX.peH, wgUp=(state.k+state.w-10+state.strokeB)-FIX.peH;
+    d.innerHTML = [['Gépmagasság (nagy zacskóra méretezve)', FIX.H+' mm'],['Hegesztés a zacskó aljától', weldFromBottom+' mm'],['Alu tasak a klipsz felett', aluOver+' mm'],
+      ['PE szabad perem a hegesztés felett', headroom+' mm'],['Izo szint és a klipsz között', isoRoom+' mm'],['Vízüveg szint és a hegesztés között', wgRoom+' mm'],['Izo csővég fent, a PE tetejéhez', (isoUp>=0?'+':'')+isoUp+' mm'],['Vízüveg csővég fent, a PE tetejéhez', (wgUp>=0?'+':'')+wgUp+' mm']]
       .map(r=>'<span>'+r[0]+'</span><span>'+r[1]+'</span>').join('');
     const msg=document.getElementById('msg'); msg.className='msg';
     if(isoRoom<10||wgRoom<10){ msg.classList.add('warn'); msg.textContent='A töltési szint túl közel van a klipsz/hegesztés vonalához (izo: '+isoRoom+' mm, vízüveg: '+wgRoom+' mm).'; }
@@ -405,13 +437,23 @@ small.foot{color:var(--muted);font-size:11.5px}
     else if(aluOver<10){ msg.classList.add('warn'); msg.textContent='A klipsz az alu tasak tetejénél vagy felette van: a klipsz nem fogja az alufóliát.'; }
     else if(aluOver>60){ msg.classList.add('warn'); msg.textContent='A klipsz mélyen az alu tasakban van ('+aluOver+' mm fólia marad felette); a kinyúló PE rész rövid.'; }
     else { msg.classList.add('ok'); msg.textContent='Elrendezés rendben: '+aluOver+' mm alufólia a klipsz felett, '+headroom+' mm PE perem a hegesztés felett.'; }
+    // flag any package size where a tube tip would end up inside the filled material in the DOWN position
+    const flags=[];
+    for(const [name,sz] of Object.entries(SIZES)){
+      const c=CFG[sz.cfg], top=FIX.pouchZ0+c.peH, clip=FIX.pouchZ0+c.k, weld=clip+c.w;
+      const isoTip=clip-30, isoLvl=FIX.pouchZ0+sz.iso;
+      const wgTip=weld-10, wgLvl=clip+8+sz.wg;
+      if(isoTip<isoLvl) flags.push(name+' confignál az izo cső beleér az anyagba ('+(isoLvl-isoTip)+' mm)');
+      if(wgTip<wgLvl) flags.push(name+' confignál a vízüveg cső beleér az anyagba ('+(wgLvl-wgTip)+' mm)');
+    }
+    document.getElementById('flags').innerHTML=flags.map(f=>'<span>'+f+'</span>').join('');
     applyPose(pose);
   }
 
   // ---------- pose (0..1 values) ----------
   // idle pose = the finished product as it is at the end of a cycle: both chambers filled, clip and weld bands flat,
   // vacuum released (the sealed pouch keeps its shape), jaws open, rods up, drawer closed for viewing
-  const IDLE = { drawer:0, cups:0, cupsOpen:0, cupsOpenMax:1, rodA:0, rodB:0, mdi:1, wg:1, clip:0, weld:0, clipFlat:1, weldFlat:1 };
+  const IDLE = { drawer:0, cups:0, cupsOpen:0, cupsOpenMax:1, rodA:0, rodB:0, mdi:1, wg:1, clip:0, weld:0, clipFlat:1, weldFlat:1, clipX:1, clipY:1, clipped:1 };
   const pose = Object.assign({}, IDLE);
   // rodA/rodB: 0 = up (extended), 1 = down (filling). cups: 0 = retracted, 1 = on the pouch. cupsOpen: 0..1 pulled apart.
   function applyPose(p){
@@ -421,11 +463,17 @@ small.foot{color:var(--muted);font-size:11.5px}
     if(pouches.pe&&A.mdi){ updatePouch(pouches.pe, p); updatePouch(pouches.alu, p); updateLiquid(A.mdi, p.mdi, p); updateLiquid(A.wg, p.wg, p); }
     for(const [key,pr] of [['A',pistons.A],['B',pistons.B]]){
       const g=A['rod'+key]; if(!g) continue; const lift=g.userData.stroke*(1-p['rod'+key]);
-      g.position.z=(A.peTop+20+lift)*S;
-      const rod=A['piston'+key]; if(rod&&pr){ const len=Math.max(2,(A.peTop+20+lift)-pr.top); rod.scale.y=len/10; rod.position.z=-len*S/2; }
+      g.position.z=(g.userData.car+lift)*S;
+      const rod=A['piston'+key]; if(rod&&pr){ const len=Math.max(2,(g.userData.car+lift)-(pr.top-8)); /* rod runs 8 mm into the flange */ rod.scale.y=len/10; rod.position.z=-len*S/2; }
       const lbl=A['lbl'+key]; const tip=g.userData.tipDown+lift; lbl.textContent=(key==='A'?'izo cső vége':'vízüveg cső vége')+'  z '+Math.round(tip); const le=labels.find(l=>l.el===lbl); if(le) le.pos.z=tip*S;
     }
     if(A.clipL){ A.clipL.position.x=-(60-52*p.clip)*S; A.clipR.position.x=(60-52*p.clip)*S; }
+    // clip pieces: brought in from the side (X), then pushed in parallel to the drawer (Y) into the holders;
+    // once clipped they stay on the pouch (x = ±3) and travel with the drawer
+    for(const [s,m] of [[-1,A.clipPL],[1,A.clipPR]]){ if(!m) continue;
+      const x = p.clipped ? s*3 : s*((55-52*p.clip) + 240*(1-(p.clipX||0)));
+      const y = p.clipped ? -320*p.drawer : -260*(1-(p.clipY||0));
+      m.position.x=x*S; m.position.y=y*S; }
     if(A.smooth){ A.smooth.forEach((m,i)=>updateSmoother(m, i<2?p.clip:p.weld)); }
     if(A.weldL){ A.weldL.position.x=-(60-52*p.weld)*S; A.weldR.position.x=(60-52*p.weld)*S; }
   }
@@ -433,40 +481,43 @@ small.foot{color:var(--muted);font-size:11.5px}
   // ---------- cycle animation ----------
   const ease=u=>u<0.5?2*u*u:1-Math.pow(-2*u+2,2)/2;
   const STEPS = [
-    {n:'Fiók betolása (tasak + klipszek bent)', d:1.6, f:u=>{pose.drawer=1-u;}},
+    {n:'Klipszek behelyezése oldalról (a fiókra merőlegesen)', d:1.0, f:u=>{pose.clipX=u;}},
+    {n:'Klipszek betolása a helyükre (a fiókkal párhuzamosan)', d:0.8, f:u=>{pose.clipY=u;}},
+    {n:'Fiók betolása (tasak bent, klipszek a klipszelőben)', d:1.6, f:u=>{pose.drawer=1-u;}},
     {n:'Vákuumkorongok rácuppannak', d:0.6, f:u=>{pose.cups=u;}},
     {n:'Zacskó szétnyitása: Ø90 henger középen, szélek behúzva', d:0.9, f:u=>{pose.cupsOpen=u;}},
-    {n:'Izo töltőcső le (400 mm)', d:1.2, f:u=>{pose.rodA=u;}},
+    {n:'Izo töltőcső le (475 mm)', d:1.2, f:u=>{pose.rodA=u;}},
     {n:'Izocianát töltése', d:2.0, f:u=>{pose.mdi=u;}},
     {n:'Izo töltőcső fel', d:1.2, f:u=>{pose.rodA=1-u;}},
-    {n:'Klipszelés (két henger, 3+3 kN): a zacskó laposra nyomva a klipsz síkjában', d:0.8, f:u=>{pose.clip=u; pose.clipFlat=u;}},
+    {n:'Klipszelés (két henger, 3+3 kN): a zacskó laposra nyomva a klipsz síkjában', d:0.8, f:u=>{pose.clip=u; pose.clipFlat=u; if(u>=1) pose.clipped=1;}},
     {n:'Klipszelő nyit, a klipsz térelválasztó marad', d:0.6, f:u=>{pose.clip=1-u;}},
-    {n:'Vízüveg töltőcső le (300 mm)', d:0.8, f:u=>{pose.rodB=u;}},
+    {n:'Vízüveg töltőcső le (140 mm)', d:0.8, f:u=>{pose.rodB=u;}},
     {n:'Vízüveg töltése', d:1.6, f:u=>{pose.wg=u;}},
     {n:'Vízüveg töltőcső fel', d:0.8, f:u=>{pose.rodB=1-u;}},
     {n:'Hegesztés (5 mm sáv, fűtőszál): a zacskó laposra nyomva a hegesztés síkjában', d:1.4, f:u=>{pose.weld=Math.min(1,u*3); pose.weldFlat=Math.min(1,u*3);}},
     {n:'Hegesztő nyit', d:0.5, f:u=>{pose.weld=1-u;}},
     {n:'Vákuum elenged', d:0.5, f:u=>{pose.cupsOpen=1-u; pose.cups=1-u;}},
     {n:'Fiók kihúzása, a kész (teli) termék kivétele', d:1.6, f:u=>{pose.drawer=u;}},
-    {n:'Új tasak behelyezése', d:0.4, f:u=>{ if(u>=1){pose.mdi=0;pose.wg=0;pose.clipFlat=0;pose.weldFlat=0;pose.cupsOpenMax=0;} }},
+    {n:'Új tasak behelyezése', d:0.4, f:u=>{ if(u>=1){pose.mdi=0;pose.wg=0;pose.clipFlat=0;pose.weldFlat=0;pose.cupsOpenMax=0;pose.clipX=0;pose.clipY=0;pose.clipped=0;} }},
   ];
-  const anim = { running:false, step:-1, t:0, gapLeft:0 };
+  const anim = { running:false, paused:false, step:-1, t:0, gapLeft:0 };
   const stepList=document.getElementById('c_steps');
   stepList.innerHTML = STEPS.map(s=>'<li>'+s.n+'</li>').join('');
   const lis=[...stepList.children];
   function markStep(i){ lis.forEach((li,j)=>{ li.className = j<i?'done': j===i?'on':''; }); }
-  function startCycle(){ Object.assign(pose,{drawer:1,cups:0,cupsOpen:0,cupsOpenMax:0,rodA:0,rodB:0,mdi:0,wg:0,clip:0,weld:0,clipFlat:0,weldFlat:0}); anim.running=true; anim.step=0; anim.t=0; anim.gapLeft=0; markStep(0); setRodBtns(); }
-  function stopCycle(){ anim.running=false; anim.step=-1; markStep(-1); Object.assign(pose, IDLE); applyPose(pose); }
+  function startCycle(){ anim.paused=false; Object.assign(pose,{drawer:1,cups:0,cupsOpen:0,cupsOpenMax:0,rodA:0,rodB:0,mdi:0,wg:0,clip:0,weld:0,clipFlat:0,weldFlat:0,clipX:0,clipY:0,clipped:0}); anim.running=true; anim.step=0; anim.t=0; anim.gapLeft=0; markStep(0); setRodBtns(); }
+  function stopCycle(){ anim.running=false; anim.paused=false; anim.step=-1; markStep(-1); Object.assign(pose, IDLE); applyPose(pose); }
   function tick(dt){
-    if(!anim.running) return;
+    if(!anim.running||anim.paused) return;
     const spd=2.25*(+document.getElementById('c_spd').value), gap=+document.getElementById('c_gap').value;   // 1× = the former 2.25× pace
     if(anim.gapLeft>0){ anim.gapLeft-=dt*spd; return; }
     const st=STEPS[anim.step]; anim.t+=dt*spd; const u=Math.min(1,anim.t/st.d); st.f(ease(u)); applyPose(pose);
-    if(u>=1){ anim.step++; anim.t=0; anim.gapLeft=gap; if(anim.step>=STEPS.length){ anim.step=0; Object.assign(pose,{drawer:1,mdi:0,wg:0,clipFlat:0,weldFlat:0,cupsOpenMax:0}); } markStep(anim.step); }
+    if(u>=1){ anim.step++; anim.t=0; anim.gapLeft=gap; if(anim.step>=STEPS.length){ anim.step=0; Object.assign(pose,{drawer:1,mdi:0,wg:0,clipFlat:0,weldFlat:0,cupsOpenMax:0,clipX:0,clipY:0,clipped:0}); } markStep(anim.step); }
   }
-  document.getElementById('c_run').addEventListener('click',startCycle);
-  document.getElementById('c_stop').addEventListener('click',stopCycle);
-  for(const [id,fmt] of [['c_spd',v=>(+v).toFixed(2).replace(/\.?0+$/,'')+'×'],['c_gap',v=>(+v).toFixed(1)+' s']]){
+  const toggle=document.getElementById('c_toggle');
+  function syncToggle(){ const running=anim.running&&!anim.paused; toggle.textContent=running?'Ciklus megy':'Start'; toggle.className='bigbtn '+(running?'run':'start'); }
+  toggle.addEventListener('click',()=>{ if(!anim.running) startCycle(); else anim.paused=!anim.paused; syncToggle(); });   // STOP pauses in place, START resumes
+  for(const [id,fmt] of [['c_spd',v=>(+v).toFixed(2).replace(/\.?0+$/,'')+'×']]){
     const el=document.getElementById(id), out=document.getElementById(id+'_val'); el.addEventListener('input',()=>out.textContent=fmt(el.value)); out.textContent=fmt(el.value);
   }
 
@@ -478,7 +529,7 @@ small.foot{color:var(--muted);font-size:11.5px}
   function setRodBtns(){}
   document.getElementById('b_house').addEventListener('click',e=>{ state.housing=!state.housing; housing.visible=state.housing; e.target.classList.toggle('on',state.housing); });
   document.getElementById('b_house').classList.add('on');
-  document.getElementById('b_reset').addEventListener('click',()=>{ stopCycle(); document.getElementById('size').value='330 ml'; state.size='330 ml'; rebuild(); state.rodA=state.rodB='up'; pose.rodA=pose.rodB=0; applyPose(pose); setRodBtns(); [orbit.theta,orbit.phi,orbit.r]=btns.iso; mark('iso'); });
+  document.getElementById('b_reset').addEventListener('click',()=>{ stopCycle(); syncToggle(); document.getElementById('size').value='330 ml'; state.size='330 ml'; rebuild(); state.rodA=state.rodB='up'; pose.rodA=pose.rodB=0; applyPose(pose); setRodBtns(); [orbit.theta,orbit.phi,orbit.r]=btns.iso; mark('iso'); });
   function save(){ try{ localStorage.setItem('mia_cfg', JSON.stringify({size:state.size})); }catch(e){} }
   try{ const s=JSON.parse(localStorage.getItem('mia_cfg')||'null'); if(s&&s.size&&SIZES[s.size]){document.getElementById('size').value=s.size; state.size=s.size;} }catch(e){}
 
@@ -493,6 +544,9 @@ small.foot{color:var(--muted);font-size:11.5px}
     for(const l of labels){ tmp.copy(l.pos).project(camera); const vis=tmp.z<1; l.el.style.display=vis?'block':'none'; l.el.style.left=((tmp.x+1)/2*w)+'px'; l.el.style.top=((1-tmp.y)/2*h)+'px'; }
     requestAnimationFrame(frame);
   }
-  rebuild(); setRodBtns(); requestAnimationFrame(frame);
+  const auto=document.getElementById('c_auto');
+  try{ const a=localStorage.getItem('mia_autostart'); if(a!==null) auto.checked=(a==='1'); }catch(e){}
+  auto.addEventListener('change',()=>{ try{ localStorage.setItem('mia_autostart', auto.checked?'1':'0'); }catch(e){} });
+  rebuild(); setRodBtns(); if(auto.checked) startCycle(); syncToggle(); requestAnimationFrame(frame);
 })();
 </script>
