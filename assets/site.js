@@ -150,6 +150,13 @@
     if (!document.documentElement.hasAttribute('data-own-i18n')) document.title = pick(t) || t;
     nav.querySelectorAll('.erd-lang button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.lang === l)));
     syncConfigurators();
+    // links with per-language targets: <a href="x.md" data-href-en="x.en.md" data-href-it="x.it.md">
+    document.querySelectorAll('[data-href-en],[data-href-it]').forEach((a) => {
+      if (!a.hasAttribute('data-href-hu')) a.setAttribute('data-href-hu', a.getAttribute('href'));
+      a.setAttribute('href', a.getAttribute('data-href-' + l) || a.getAttribute('data-href-hu'));
+    });
+    // pages with their own per-language content (e.g. the work log) listen for this
+    document.dispatchEvent(new CustomEvent('erd:lang', { detail: l }));
   }
 
   nav.querySelectorAll('.erd-lang button').forEach((b) =>

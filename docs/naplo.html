@@ -13,11 +13,21 @@
 .log hr{border:0;border-top:1px solid var(--rule);margin:28px 0}
 </style></head><body class="page">
 <section class="hero-page"><h1>Napló</h1><p>Így készült a MIA koncepció Claude-dal: két este Chatben, egy nap Claude Code-ban.</p>
-<div class="btn-row" style="margin-top:22px"><a class="btn btn--light" href="MIA_naplo.md" download>Napló letöltése (.md)</a><a class="btn btn--ghost" href="https://github.com/luihalasz/mia_ai_kihivas">GitHub</a></div></section>
+<div class="btn-row" style="margin-top:22px"><a class="btn btn--light" id="logdl" href="MIA_naplo.md" download>Napló letöltése (.md)</a><a class="btn btn--ghost" href="https://github.com/luihalasz/mia_ai_kihivas">GitHub</a></div></section>
 <section class="section log" id="log"><p>Betöltés…</p></section>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
 <script>
-fetch('MIA_naplo.md').then(r => r.text()).then(md => { document.getElementById('log').innerHTML = marked.parse(md); })
-  .catch(() => { document.getElementById('log').innerHTML = '<p><a href="MIA_naplo.md">MIA_naplo.md</a></p>'; });
+// the log exists in three languages; follow the site language (site.js fires 'erd:lang' on every switch)
+const LOG_FILE = { hu: 'MIA_naplo.md', en: 'MIA_naplo.en.md', it: 'MIA_naplo.it.md' };
+let logShown = null;
+function showLog(l) {
+  const f = LOG_FILE[l] || LOG_FILE.hu;
+  document.getElementById('logdl').setAttribute('href', f);
+  if (f === logShown) return;
+  logShown = f;
+  fetch(f).then(r => r.text()).then(md => { if (logShown === f) document.getElementById('log').innerHTML = marked.parse(md); })
+    .catch(() => { document.getElementById('log').innerHTML = '<p><a href="' + f + '">' + f + '</a></p>'; });
+}
+document.addEventListener('erd:lang', e => showLog(e.detail));
 </script>
 <script src="../assets/i18n.js"></script><script src="../assets/site.js"></script></body></html>

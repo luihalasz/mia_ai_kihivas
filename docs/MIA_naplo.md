@@ -75,7 +75,8 @@ Ezen a napon készült el:
 3. **Konfigurátor átdolgozás**:
    - letisztult felület: csak a kiszerelés-választó, az automata animáció és a forgatható modell maradt;
    - árnyékolt, kontúros megjelenés a vázlatos helyett;
-   - a tablet karra került, mert korábban belelógott a gép falába.
+   - a tablet karra került, mert korábban belelógott a gép falába;
+   - a kamera a fólia közepe körül forog, ott, ahol a fólia a gépben bent van.
 4. **Új renderek** a saját GPU-n: kihúzott fiók tasakkal; a gép állványon, teljes háromszínű jelzőlámpával, fekete kijelzővel.
 5. **Klipszpár rajz** az én kézi vázlatom alapján. Kétszer kellett javítani, mire a C-profil vége pontosan egy vonalba került a nyolcas derekával.
 6. **~1 perces videó**, teljesen Blenderben, kódból. Az első változat 41 mp-es volt, 720p-ben, magyar feliratokkal. Visszajelzés után lett belőle:
@@ -94,7 +95,7 @@ Ezen a napon készült el:
    - simító pofák: nem fordulnak be a sarkok;
    - vákuumkorongok a hengeres szorítás helyett, így nem csúszik le a fólia;
    - 4 MIA elfér egy Manyika 1 helyén, és 5 helyett 1 operátor kezeli őket.
-7. **Letöltések**: a 3D modell (.glb, .blend), a modell Python kódja, a GitHub link és ez a napló, a MIA és a Kapcsolat oldalon.
+7. **Letöltések**: a 3D modell (.glb, .blend, STEP), a modell Python kódja, a GitHub link és ez a napló, a MIA és a Kapcsolat oldalon. A napló mindhárom nyelven olvasható.
 
 **Ahol elakadtunk:**
 - **Git hiányzott** a gépről: a Claude feltelepítette (winget), én jóváhagytam.
