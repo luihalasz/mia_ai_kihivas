@@ -1,5 +1,39 @@
-<title>MIA Konfigurátor</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="hu" data-no-footer data-own-i18n>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIA Konfigur&aacute;tor &middot; Equipment R&amp;D</title>
+<link rel="icon" href="assets/erd-logo.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+/* site menu bar on top; the configurator fills the rest of the viewport */
+body{display:flex;flex-direction:column}
+body>.erd-nav{margin:-12px calc(-1 * max(16px,env(safe-area-inset-right,0px))) 12px calc(-1 * max(16px,env(safe-area-inset-left,0px)));flex:0 0 auto}
+body>.app{flex:1 1 auto;height:auto;min-height:560px}
+#lang{display:none} /* the menu bar's HU/EN/IT switch drives it (also when embedded in mia.html) */
+</style>
+<style>
+/* Clean presentation layout: fill-size picker + the running cycle step on top,
+   the auto-animating, rotatable model below. Everything else is hidden (kept in
+   the DOM because the script still drives it). */
+body>.app{grid-template-columns:1fr!important;grid-template-rows:auto minmax(420px,1fr)!important;gap:12px}
+.rail{flex-direction:row!important;flex-wrap:wrap;align-items:center;gap:10px 28px!important;padding:12px 16px!important;overflow:visible!important}
+/* rail children: 1 title, 2 fill size, 3 cycle animation, 4 derived values, 5 view buttons, 6 footnote */
+.rail>:nth-child(1),.rail>:nth-child(n+3),
+#preset,.rail .step small.foot,
+.rail>:nth-child(3)>label,.rail>:nth-child(3)>.row{display:none!important}
+.rail .step{border-top:0!important;padding-top:0!important;flex-direction:row!important;align-items:center;gap:10px}
+.rail>:nth-child(2) select{width:auto;min-width:150px;font-size:14px;font-weight:600}
+.rail .step label{margin:0}
+.steps{margin:0!important;padding:0!important;list-style:none}
+.steps li{display:none}
+.steps li.on{display:block;font-size:14px;color:var(--fg)}
+.view .topbar .hint,.view .flags,.view .ctl,.view .legend{display:none!important}
+/* studio backdrop like the home page hero: black -> metal -> light */
+.view{background:radial-gradient(90% 60% at 50% 0%,rgba(255,255,255,.07),transparent 60%),linear-gradient(180deg,#07080a 0%,#1d2025 35%,#5a6068 68%,#b9bec5 88%,#dfe2e6 100%)!important;border:0!important}
+</style><meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: control rail on the left, 3D schematic fills the rest; stacks on phones. */
 :root{
@@ -176,15 +210,37 @@ small.foot{color:var(--muted);font-size:11.5px}
   const renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   view.appendChild(renderer.domElement);
+  // shaded "product" look: filmic tone mapping, sRGB output, soft shadows, studio reflections
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.95;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(32, 1, 0.05, 50);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 0.9));
-  const key = new THREE.DirectionalLight(0xffffff, 0.7); key.position.set(-2,-3,4); scene.add(key);
-  const fillL = new THREE.DirectionalLight(0xffffff, 0.3); fillL.position.set(3,2,2); scene.add(fillL);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 50);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x2a2e34, 0.08));
+  const key = new THREE.DirectionalLight(0xffffff, 2.3); key.position.set(-1.2,-1.8,4.6);
+  key.castShadow = true; key.shadow.mapSize.set(2048,2048); key.shadow.bias = -0.0004; key.shadow.normalBias = 0.002;
+  Object.assign(key.shadow.camera, {left:-1.1, right:1.1, top:1.4, bottom:-1.4, near:0.5, far:8});
+  scene.add(key);
+  const fillL = new THREE.DirectionalLight(0xdfe8ff, 0.22); fillL.position.set(3,2,2); scene.add(fillL);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.9); rim.position.set(1.5,3,1.2); scene.add(rim);
   scene.up = new THREE.Vector3(0,0,1); camera.up.set(0,0,1);
+  // procedural studio environment (soft boxes in a grey room) -> reflections on metal and glass
+  (function(){
+    const env = new THREE.Scene();
+    const room = new THREE.Mesh(new THREE.BoxGeometry(10,10,10), new THREE.MeshBasicMaterial({color:0x24272c, side:THREE.BackSide}));
+    env.add(room);
+    const panel = (w,h,x,y,z,ry,rx,c) => { const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:c, side:THREE.DoubleSide})); m.position.set(x,y,z); m.rotation.set(rx||0,ry||0,0); env.add(m); };
+    panel(6,2.2, 0,4.9,1, 0,0, 0xffffff);              // big soft box behind
+    panel(3,4, -4.9,0,1.5, Math.PI/2,0, 0xf2f4f7);       // left strip
+    panel(2,4,  4.9,0,0.5, Math.PI/2,0, 0xcfd6e0);       // right strip
+    panel(4,4, 0,0,4.9, 0,Math.PI/2, 0xb7bcc4);          // ceiling light
+    panel(10,10, 0,0,-4.9, 0,Math.PI/2, 0x2b2e33);       // dark floor
+    const pm = new THREE.PMREMGenerator(renderer);
+    scene.environment = pm.fromScene(env, 0.04).texture;
+  })();
 
   // orbit (minimal, self-contained)
-  const orbit = { theta:-0.8, phi:1.15, r:2.6, target:new THREE.Vector3(0,0,FIX.H*S/2) };
+  const orbit = { theta:-0.95, phi:1.32, r:3.7, target:new THREE.Vector3(0,0,FIX.H*S/2) };
   function updateCam(){
     const t=orbit.target, p=orbit.phi, th=orbit.theta, r=orbit.r;
     camera.position.set(t.x + r*Math.sin(p)*Math.cos(th), t.y + r*Math.sin(p)*Math.sin(th), t.z + r*Math.cos(p));
@@ -197,23 +253,35 @@ small.foot{color:var(--muted);font-size:11.5px}
   renderer.domElement.addEventListener('wheel',e=>{e.preventDefault(); orbit.r=Math.min(6,Math.max(0.8,orbit.r*(1+Math.sign(e.deltaY)*0.08)));},{passive:false});
 
   // ---------- materials ----------
+  // real-world finishes (matches the rendered machine): brushed aluminium profiles, smoked glass,
+  // stainless drawer front and fill tubes, dark anthracite plinth, translucent films and liquids
   const M = {
-    house: new THREE.MeshStandardMaterial({color:0x2b4a86, transparent:true, opacity:0.16, roughness:0.2, side:THREE.DoubleSide, depthWrite:false}),
-    frame: new THREE.MeshStandardMaterial({color:0xaeb6c2, roughness:0.5}),
-    alu:   new THREE.MeshStandardMaterial({color:0xc9ced6, roughness:0.35, metalness:0.6, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false}),
-    pe:    new THREE.MeshStandardMaterial({color:0xd8f0ff, roughness:0.1, transparent:true, opacity:0.3, side:THREE.DoubleSide, depthWrite:false}),
-    mdi:   new THREE.MeshStandardMaterial({color:0xf08a24, roughness:0.2, transparent:true, opacity:0.9, side:THREE.DoubleSide}),
-    wg:    new THREE.MeshStandardMaterial({color:0x8fd3ff, roughness:0.1, transparent:true, opacity:0.8, side:THREE.DoubleSide}),
-    clip:  new THREE.MeshStandardMaterial({color:0xe4c266, roughness:0.5}),
-    weld:  new THREE.MeshStandardMaterial({color:0xe06060, roughness:0.5}),
-    grey:  new THREE.MeshStandardMaterial({color:0x8a8f99, roughness:0.6}),
-    white: new THREE.MeshStandardMaterial({color:0xf2f3f5, roughness:0.55, side:THREE.DoubleSide}),
-    rod:   new THREE.MeshStandardMaterial({color:0x6f8fe0, roughness:0.3, metalness:0.5}),
-    cyl:   new THREE.MeshStandardMaterial({color:0x9aa3b2, roughness:0.4, metalness:0.6}),
-    rubber:new THREE.MeshStandardMaterial({color:0x2a2e36, roughness:0.9}),
-    cap:   new THREE.MeshStandardMaterial({color:0x1a1e26, roughness:0.6, transparent:true, opacity:0.55, side:THREE.DoubleSide, depthWrite:false}),
+    house: new THREE.MeshPhysicalMaterial({color:0x8d949c, metalness:0, roughness:0.04, transparent:true, opacity:0.1, side:THREE.DoubleSide, depthWrite:false, envMapIntensity:1.6, clearcoat:1}),
+    frame: new THREE.MeshStandardMaterial({color:0xd3d7dc, metalness:0.6, roughness:0.32}),
+    steel: new THREE.MeshStandardMaterial({color:0xdadde1, metalness:0.7, roughness:0.22}),
+    alu:   new THREE.MeshStandardMaterial({color:0xd7dadf, roughness:0.28, metalness:1, transparent:true, opacity:0.9, side:THREE.DoubleSide, depthWrite:false}),
+    pe:    new THREE.MeshPhysicalMaterial({color:0xeef6fb, roughness:0.08, metalness:0, transparent:true, opacity:0.24, side:THREE.DoubleSide, depthWrite:false, clearcoat:1}),
+    mdi:   new THREE.MeshPhysicalMaterial({color:0x6b3510, roughness:0.15, transparent:true, opacity:0.93, side:THREE.DoubleSide, clearcoat:1}),
+    wg:    new THREE.MeshPhysicalMaterial({color:0xcfe6ee, roughness:0.05, transparent:true, opacity:0.62, side:THREE.DoubleSide, clearcoat:1}),
+    clip:  new THREE.MeshStandardMaterial({color:0xd9b44a, roughness:0.45}),
+    jaw:   new THREE.MeshStandardMaterial({color:0xb9bec5, metalness:0.85, roughness:0.35}),
+    weld:  new THREE.MeshStandardMaterial({color:0x8b5e3c, metalness:0.8, roughness:0.38}),
+    grey:  new THREE.MeshStandardMaterial({color:0x7d838b, metalness:0.7, roughness:0.4}),
+    white: new THREE.MeshStandardMaterial({color:0xf4f5f7, roughness:0.55, side:THREE.DoubleSide}),
+    rod:   new THREE.MeshStandardMaterial({color:0xcfd2d6, roughness:0.18, metalness:1}),
+    cyl:   new THREE.MeshStandardMaterial({color:0xbfc4ca, roughness:0.3, metalness:0.9}),
+    rubber:new THREE.MeshStandardMaterial({color:0x17191c, roughness:0.75}),
+    cap:   new THREE.MeshStandardMaterial({color:0x26292e, metalness:0.6, roughness:0.45}),
+    table: new THREE.MeshStandardMaterial({color:0x3a3e44, metalness:0.7, roughness:0.45}),
+    green: new THREE.MeshStandardMaterial({color:0x22c55e, emissive:0x0f7a35, emissiveIntensity:0.6, roughness:0.35}),
+    screen:new THREE.MeshPhysicalMaterial({color:0x050507, metalness:0, roughness:0.05, clearcoat:1, clearcoatRoughness:0.03, envMapIntensity:1.4}),   // tablet off: glossy black glass
+    lampR: new THREE.MeshStandardMaterial({color:0x5a1010, roughness:0.3, transparent:true, opacity:0.9}),
+    lampY: new THREE.MeshStandardMaterial({color:0x6a5410, roughness:0.3, transparent:true, opacity:0.9}),
+    lampG: new THREE.MeshStandardMaterial({color:0x22c55e, emissive:0x22c55e, emissiveIntensity:1.2, roughness:0.3}),
   };
   const edgeMat = new THREE.LineBasicMaterial({color:0x7f8ba0, transparent:true, opacity:0.5});
+  edgeMat.visible = false;   // no schematic wireframe edges in the shaded look
+  const contourMat = new THREE.LineBasicMaterial({color:0x15181c, transparent:true, opacity:0.6});   // product-style outlines
 
   // ---------- helpers (mm in, metres out) ----------
   const dyn = new THREE.Group(); scene.add(dyn);     // rebuilt on parameter change
@@ -322,9 +390,36 @@ small.foot{color:var(--muted);font-size:11.5px}
     clear(housing); clear(statics); clear(cups.L); clear(cups.R);
     for(const c of [...drawer.children]) if(c!==drawerDyn) drawer.remove(c);
     const {W,D,H}=FIX;
-    box(housing, W,D,H-52, 0,0,40+(H-52)/2, M.house, true).renderOrder=10;
-    box(housing, W,D,40, 0,0,20, M.cap).renderOrder=10; box(housing, W,D,12, 0,0,H-6, M.cap).renderOrder=10;
-    for(const sx of [-1,1]) for(const sy of [-1,1]) box(statics, 30,30,H-86, sx*(W/2-25), sy*(D/2-25), H/2, M.frame);   // posts end 3 mm clear of the plinth and the cap (no coplanar faces)
+    box(housing, W-2,D-2,H-52, 0,0,40+(H-52)/2, M.house).renderOrder=10;                  // smoked glass skin
+    box(statics, W+6,D+6,40, 0,0,20, M.cap); box(statics, W+4,D+4,10, 0,0,H-5, M.cap);    // dark plinth + thin top cap
+    for(const sx of [-1,1]) for(const sy of [-1,1]) box(statics, 30,30,H-52, sx*(W/2-14), sy*(D/2-14), 40+(H-52)/2, M.frame);   // corner profiles
+    // perimeter rails: above the plinth, under the cap, and the upper cross rail seen on the real housing
+    for(const z of [55, H-24, H-330]){
+      for(const sy of [-1,1]) box(statics, W-58,26,26, 0, sy*(D/2-14), z, M.frame);
+      for(const sx of [-1,1]) box(statics, 26,D-58,26, sx*(W/2-14), 0, z, M.frame);
+    }
+    // two-hand start buttons on the plinth front
+    for(const sx of [-1,1]){ cyl(statics, 16,10, sx*(W/2-60),-D/2-6,22,'Y',M.green); cyl(statics, 21,4, sx*(W/2-60),-D/2-2,22,'Y',M.steel); }
+    // operator tablet on an arm, front right, facing the operator
+    // arm: mount block on the right side wall -> tube out along X -> tube forward along Y;
+    // the tablet hangs fully in front of the front glass (y < -D/2), never inside the housing
+    { const ax=W/2+75, ay=-60, tz=H-430, ty=-D/2-45;
+      box(statics, 12,70,70, W/2+6,ay,tz, M.rubber);
+      cyl(statics, 10,ax-(W/2+12), (W/2+12+ax)/2,ay,tz,'X',M.steel);
+      cyl(statics, 10,ay-(ty+12), ax,(ay+ty+12)/2,tz,'Y',M.steel);
+      const tab=new THREE.Group(); tab.position.set(ax*S,ty*S,tz*S); tab.rotation.z=0.25; tab.rotation.x=-0.18; statics.add(tab);
+      box(tab, 260,14,175, 0,0,0, M.rubber); box(tab, 240,2,155, 0,-8,0, M.screen); }
+    // three-colour stack light, rear right on the cap
+    { const sx=W/2-60, sy=D/2-60;
+      cyl(statics, 9,60, sx,sy,H+30,'Z',M.rubber);
+      [[M.lampR,H+150],[M.lampY,H+115],[M.lampG,H+80]].forEach(([m,z])=>cyl(statics, 26,34, sx,sy,z,'Z',m));
+      cyl(statics, 26,6, sx,sy,H+170,'Z',M.rubber); }
+    // 700 mm steel stand under the machine, with a shelf
+    { const TH=700, tw=W+60, td=D+60;
+      box(statics, tw,td,24, 0,0,-12, M.table);
+      for(const sx of [-1,1]) for(const sy of [-1,1]) box(statics, 40,40,TH-24, sx*(tw/2-20), sy*(td/2-20), -24-(TH-24)/2, M.table);
+      box(statics, tw-40,td-40,14, 0,0,-TH+160, M.table);
+      for(const sx of [-1,1]) for(const sy of [-1,1]) box(statics, 52,52,10, sx*(tw/2-20), sy*(td/2-20), -TH+5, M.rubber); }
     // drawer frame: two vertical bars (y=±125), bottom bar; slides stay in the machine
     // the drawer is one part for both pouch sizes: its frame is sized for the large pouch
     const peHmax=Math.max(...Object.values(CFG).map(c=>c.peH));
@@ -332,7 +427,7 @@ small.foot{color:var(--muted);font-size:11.5px}
     for(const s of [-1,1]) box(drawer, 28,22,zb1-zb0, 0,s*yb,(zb0+zb1)/2, M.frame, true);
     box(drawer, 28,2*yb+22,22, 0,0,zb0+11, M.frame, true);
     box(drawer, 28,(D/2-6)-(yb-11),22, 0,-(D/2-6+yb-11)/2,zb0+11, M.frame);
-    box(drawer, 190,8,zb1-zb0+120, 0,-D/2-4,(zb0+zb1)/2, M.house, true).renderOrder=10;   // drawer front plate: drawn last, no depth write, so the film behind it stays visible
+    box(drawer, 190,8,zb1-zb0+120, 0,-D/2-4,(zb0+zb1)/2, M.steel);   // solid stainless drawer front
     // vertical pull handle on the drawer front, centred: two standoffs + a 160 mm bar, black
     const hz=(zb0+zb1)/2;
     for(const e of [-1,1]) cyl(drawer, 6,22, 0,-D/2-19,hz+e*70,'Y',M.rubber);
@@ -351,9 +446,10 @@ small.foot{color:var(--muted);font-size:11.5px}
       cyl(statics, 20,len, x,y,top-len/2,'Z',M.cyl); box(statics, 70,50,10, x,y,top-5, M.rubber); box(statics, 70,50,10, x,y,top-len+5, M.rubber);
       pistons[key]={top, stroke};
     }
-    const g = new THREE.Mesh(new THREE.CircleGeometry(1.2,48), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:0.08, side:THREE.DoubleSide, depthWrite:false}));
-    g.position.z=-0.004; g.renderOrder=0; statics.add(g);   // kept clear of the plinth's underside so the two never z-fight
-    orbit.target.z = H*S/2;
+    // floor under the stand: catches the soft shadow only
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(6,6), new THREE.ShadowMaterial({opacity:0.42}));
+    g.position.z=-0.702; g.receiveShadow=true; statics.add(g);
+    orbit.target.z = (H-260)*S/2;
   }
 
   // ---- smoother: D-profile bar, bowed in the top view like ")(" when open, straight "||" when the jaws meet ----
@@ -405,7 +501,7 @@ small.foot{color:var(--muted);font-size:11.5px}
     // clip station: moving heads (holder, clip, rod, smoother) + fixed cylinders
     for(const s of [-1,1]){
       const g=new THREE.Group(); dyn.add(g); g.position.set(s*60*S,0,clipZ*S); A[s<0?'clipL':'clipR']=g;
-      box(g, 22,L+14,34, s*11,0,0, M.clip, true);
+      box(g, 22,L+14,34, s*11,0,0, M.jaw, true);
       A['clipP'+(s<0?'L':'R')] = box(dyn, 10,L,10, s*55,0,clipZ, M.clip, true);   // the clip piece itself: inserted by the operator, stays on the pouch after clipping
       cyl(g, 8,60, s*30,0,0,'X',M.grey); box(g, 14,L+14,24, s*13,0,-29, M.grey); A.smooth.push(makeSmoother(g, L, s, -10, -40));   // flat face flush with the clip's inner face
       cyl(dyn, 20,110, s*150,0,clipZ,'X',M.cyl);
@@ -432,8 +528,7 @@ small.foot{color:var(--muted);font-size:11.5px}
     }
     // reference lines + labels
     const ext=FIX.D/2+10;
-    line(dyn, [[0,-ext,clipZ],[0,ext,clipZ]], 0xe4c266, true);
-    line(dyn, [[0,-ext,weldZ],[0,ext,weldZ]], 0xe06060, true);
+    // (schematic clip/weld reference lines are left out of the shaded look)
     addLabel('klipsz  '+state.k+' mm  (z '+clipZ+')', 0,ext,clipZ);
     addLabel('hegesztés  +'+state.w+' mm  (z '+weldZ+')', 0,ext,weldZ);
     addLabel('zacskó alja  (z '+z0+')', 0,ext,z0); addLabel('alu teteje  '+FIX.aluH, 0,ext,aluTop); addLabel('PE teteje  '+FIX.peH, 0,ext,peTop);
@@ -459,6 +554,14 @@ small.foot{color:var(--muted);font-size:11.5px}
       if(wgTip<wgLvl) flags.push(t('{n} confignál a vízüveg cső beleér az anyagba ({a} mm)',{n:name,a:wgLvl-wgTip}));
     }
     document.getElementById('flags').innerHTML=flags.map(f=>'<span>'+f+'</span>').join('');
+    // opaque parts cast and receive shadows; glass, films and liquids stay shadow-free.
+    // Solid boxes/cylinders also get a thin dark contour (feature edges only) for a crisp product look.
+    const solids=[];
+    scene.traverse(o=>{ if(o.isMesh && o.material && !o.material.transparent && !o.material.isShadowMaterial){
+      o.castShadow=true; o.receiveShadow=true;
+      const gt=o.geometry && o.geometry.type;
+      if(!o.userData.edged && (gt==='BoxGeometry'||gt==='CylinderGeometry')) solids.push(o); } });
+    solids.forEach(o=>{ o.add(new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 28), contourMat)); o.userData.edged=true; });
     applyPose(pose);
   }
 
@@ -568,3 +671,12 @@ small.foot{color:var(--muted);font-size:11.5px}
   translateStatic(); renderSteps(); rebuild(); setRodBtns(); if(auto.checked) startCycle(); syncToggle(); requestAnimationFrame(frame);
 })();
 </script>
+<script>
+// Clean layout has no start button: always run the cycle automatically.
+(function () {
+  const auto = document.getElementById('c_auto'), btn = document.getElementById('c_toggle');
+  if (!auto.checked) { auto.checked = true; auto.dispatchEvent(new Event('change')); }
+  if (btn && btn.classList.contains('start')) btn.click();
+})();
+</script>
+<script src="assets/i18n.js"></script><script src="assets/site.js"></script>

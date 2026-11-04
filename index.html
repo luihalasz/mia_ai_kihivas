@@ -1,14 +1,94 @@
 <!doctype html>
-<html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MIA – coming soon</title>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MIA · Equipment R&amp;D</title>
+<meta name="description" content="MIA (Manyika 2) – egy fiók, két komponens: burst pouch töltés, klipszelés és hegesztés egy gépben.">
+<link rel="icon" href="assets/erd-logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
 <style>
-body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0d1118;color:#e6ebf3;font-family:system-ui,sans-serif;text-align:center}
-h1{font-size:clamp(48px,12vw,140px);letter-spacing:.08em;margin:0;color:#c9d2e3}
-p{color:#8e9ab0;margin:.4em 0}
-a{color:#5b8cff}
-</style></head><body><div>
-<h1>MIA</h1>
-<p>Burst pouch filling · clipping · sealing — reimagined.</p>
-<p>Coming soon.</p>
-<p><a href="configurator.html">Konfigurátor (sematikus 3D)</a></p>
-</div></body></html>
+/* Hero: black → metal → white, machine on the right, message in the middle */
+.hero{position:relative;overflow:hidden;min-height:calc(100vh - var(--nav-h));min-height:calc(100svh - var(--nav-h));
+  display:flex;align-items:center;color:#fff;
+  background:
+    radial-gradient(120% 70% at 50% 0%,rgba(255,255,255,.06),transparent 60%),
+    linear-gradient(180deg,#000 0%,#08090b 14%,#202328 36%,#4d535b 56%,#8f959d 72%,#cfd3d8 87%,#fff 100%)}
+.hero__in{position:relative;width:100%;max-width:1320px;margin:0 auto;padding:56px 24px 72px;
+  display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);align-items:center;gap:24px}
+.hero__copy{text-align:center;justify-self:center;max-width:660px;position:relative;z-index:2}
+.eyebrow{display:inline-flex;align-items:center;gap:10px;margin:0 0 22px;font-size:12px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:#cfd4da}
+.eyebrow::before,.eyebrow::after{content:"";width:28px;height:1px;background:currentColor;opacity:.6}
+.hero h1{margin:0;font-size:clamp(40px,6.2vw,84px);line-height:.98;font-weight:800;letter-spacing:-.025em;
+  background:linear-gradient(180deg,#fff 0%,#fff 45%,#b9bfc7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero h1 em{font-style:normal;display:block;background:linear-gradient(90deg,#9aa1aa,#f2f4f6 50%,#9aa1aa);-webkit-background-clip:text;background-clip:text;color:transparent}
+/* background-clip:text only paints inside the box: give descenders (g, p, y, q) room, keep the visual spacing */
+.hero h1,.hero h1 em{padding-bottom:.14em;margin-bottom:-.1em}
+.hero p.lead{margin:24px auto 0;max-width:52ch;font-size:clamp(16px,1.5vw,19px);line-height:1.6;color:#e1e4e8;text-shadow:0 1px 12px rgba(0,0,0,.35)}
+.hero .btn-row{justify-content:center;margin-top:34px}
+.hero__shot{position:relative;justify-self:center;height:min(80vh,820px);display:flex;align-items:flex-end;justify-content:center}
+.hero__shot img{height:100%;width:auto;max-width:100%;object-fit:contain;display:block;filter:drop-shadow(0 40px 60px rgba(0,0,0,.45))}
+.stats{display:flex;justify-content:center;gap:clamp(12px,3vw,32px);margin-top:42px;padding:0;list-style:none;flex-wrap:wrap}
+.stats li{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-radius:12px;background:rgba(0,0,0,.42);
+  border:1px solid rgba(255,255,255,.12);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.stats b{font-size:26px;font-weight:700;letter-spacing:-.01em;color:#fff}
+.stats span{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:#d5d9de}
+@media (max-width:980px){
+  .hero{min-height:auto}
+  .hero__in{grid-template-columns:1fr;padding-top:48px}
+  .hero__shot{height:min(90vw,620px);order:2}
+}
+</style>
+</head>
+<body class="page">
+
+<section class="hero">
+  <div class="hero__in">
+    <div class="hero__copy">
+      <p class="eyebrow">Introducing MIA</p>
+      <h1>Fill. Clip. Seal.<em>One machine.</em></h1>
+      <p class="lead">MIA turns a chain of manual steps into one safe, two-hand cycle. Both chambers of the burst pouch are filled, divided and sealed in a single compact cell — a genuine breakthrough for how burst pouches are made.</p>
+      <div class="btn-row">
+        <a class="btn btn--light" href="mia.html">Discover MIA</a>
+        <a class="btn btn--ghost" href="configurator.html">Try the 3D configurator</a>
+      </div>
+      <ul class="stats">
+        <li><b>1</b><span>cycle</span></li>
+        <li><b>8</b><span>fill sizes</span></li>
+        <li><b>330 ml–2.25 l</b><span>range</span></li>
+      </ul>
+    </div>
+    <div class="hero__shot">
+      <img src="img/hero_machine.png" alt="MIA burst pouch töltő–klipszelő–hegesztő gép az állványon">
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <h2>Amit a MIA máshogy csinál</h2>
+  <p class="sub">Nem egy új gép a semmiből: a Manyika szétszedve, minden csavar megvizsgálva, és újra összerakva úgy, hogy az operátornak egyetlen mozdulata maradjon.</p>
+  <div class="grid3">
+    <a class="card" href="mia.html"><img src="img/02_drawer_open.png" alt="Kihúzott fiók a kész termékkel"><div class="b"><h3>Fiók, nem kezelőtér</h3><p>A tasak a kihúzott fiókba kerül, a gumírozott U-profilok egyenesen tartják. Betolás után minden a gép belsejében történik.</p></div></a>
+    <a class="card" href="mia.html#toltes"><img src="img/04_process_cutaway.png" alt="Töltés közben, cutaway"><div class="b"><h3>Pneumatikus töltés, fröcsögés nélkül</h3><p>Az izo és a vízüveg fém töltőcsövön, vezetett munkahengerrel ereszkedik a nyitott zacskóba, közvetlenül az anyagszint fölé.</p></div></a>
+    <a class="card" href="mia.html#ellatoegyseg"><img src="img/03_rear_skid.png" alt="Ellátóegység: tartályok, kompresszor, IBC"><div class="b"><h3>Ellátóegység a gép mögött</h3><p>Két 50 literes nyomástartó edény, 1,5 bar, 6 baros kompresszor, perisztaltikus utántöltés két IBC-ből.</p></div></a>
+  </div>
+</section>
+
+<section class="dark">
+  <div class="section">
+    <h2>Nézd meg működés közben</h2>
+    <p class="sub">A konfigurátorban a teljes ciklus lejátszható kiszerelésenként, a reveal-trailer pedig hamarosan érkezik.</p>
+    <div class="grid3">
+      <a class="card" href="configurator.html"><img src="img/06_inside_front.png" alt="Belső elrendezés"><div class="b"><h3>Konfigurátor</h3><p>Sematikus 3D, ciklusanimáció, HU / EN / IT.</p></div></a>
+      <a class="card" href="mia.html#video"><img src="img/01_hero.png" alt="MIA reveal trailer"><div class="b"><h3>Reveal trailer</h3><p>Két perc, sejtelmes. Hamarosan.</p></div></a>
+      <a class="card" href="accessories.html"><img src="img/07_drawer_out_pouch.jpg" alt="Kihúzott fiók a kész, töltött tasakkal"><div class="b"><h3>Tasak és klipsz</h3><p>Minden, ami a gépbe kerül: méretek, anyagok.</p></div></a>
+    </div>
+  </div>
+</section>
+
+<script src="assets/i18n.js"></script><script src="assets/site.js"></script>
+</body>
+</html>
