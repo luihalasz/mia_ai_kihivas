@@ -43,8 +43,10 @@ canvas{display:block;width:100%;height:100%}
 .lbl{position:absolute;transform:translate(8px,-50%);font-family:var(--mono);font-size:11px;padding:2px 6px;border-radius:4px;background:var(--panel);border:1px solid var(--line);white-space:nowrap;pointer-events:none}
 .legend{position:absolute;left:10px;bottom:10px;right:150px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:11.5px;color:var(--muted);pointer-events:none}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
-.hint{position:absolute;right:10px;top:10px;font-size:11.5px;color:var(--muted);pointer-events:none}
-.flags{position:absolute;right:10px;top:30px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none}
+.topbar{position:absolute;right:10px;top:10px;display:flex;align-items:center;gap:10px}
+.hint{font-size:11.5px;color:var(--muted)}
+#lang{width:auto;padding:3px 6px;font-size:12px;font-family:var(--sans)}
+.flags{position:absolute;right:10px;top:44px;display:flex;flex-direction:column;align-items:flex-end;gap:4px;pointer-events:none}
 .flags span{font-size:12px;padding:4px 8px;border-radius:6px;background:color-mix(in srgb,var(--warn) 16%,var(--panel));color:var(--warn);border:1px solid color-mix(in srgb,var(--warn) 40%,transparent)}
 .ctl{position:absolute;right:14px;bottom:40px;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
 .switch{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
@@ -67,63 +69,63 @@ small.foot{color:var(--muted);font-size:11.5px}
 <div class="app">
   <aside class="rail">
     <div>
-      <h1>MIA konfigurátor</h1>
-      <p class="sub">Burst pouch töltő–klipszelő–hegesztő. Sematikus térbeli elrendezés a kiszerelés-preset alapján.</p>
+      <h1 data-i18n>MIA konfigurátor</h1>
+      <p class="sub" data-i18n>Burst pouch töltő–klipszelő–hegesztő. Sematikus térbeli elrendezés a kiszerelés-preset alapján.</p>
     </div>
 
     <div class="step">
-      <label for="size">Kiszerelés</label>
+      <label for="size" data-i18n>Kiszerelés</label>
       <select id="size">
-        <optgroup label="Kicsi zacskó (1 l alatt)"><option>330 ml</option><option>500 ml</option><option>670 ml</option><option>750 ml</option></optgroup>
-        <optgroup label="Nagy zacskó (1 l és felette)"><option>1 l</option><option>1,5 l</option><option>1,8 l</option><option>2,25 l</option></optgroup>
+        <optgroup data-i18n-label label="Kicsi zacskó (1 l alatt)"><option>330 ml</option><option>500 ml</option><option>670 ml</option><option>750 ml</option></optgroup>
+        <optgroup data-i18n-label label="Nagy zacskó (1 l és felette)"><option>1 l</option><option>1,5 l</option><option>1,8 l</option><option>2,25 l</option></optgroup>
       </select>
       <div class="derived" id="preset"></div>
-      <small class="foot">A kiszerelés választja a zacskó-konfigurációt; a klipsz- és hegesztési vonal a presetből jön.</small>
+      <small class="foot" data-i18n>A kiszerelés választja a zacskó-konfigurációt; a klipsz- és hegesztési vonal a presetből jön.</small>
     </div>
 
     <div class="step">
-      <label>Ciklus animáció</label>
-      <label for="c_spd" style="margin-top:4px">Sebesség <code id="c_spd_val">1.0×</code></label>
+      <label data-i18n>Ciklus animáció</label>
+      <label for="c_spd" style="margin-top:4px"><span data-i18n>Sebesség</span> <code id="c_spd_val">1.0×</code></label>
       <div class="row"><input type="range" id="c_spd" min="0.25" max="3" step="0.25" value="1"></div>
       <input type="hidden" id="c_gap" value="0.5">
       <ol class="steps" id="c_steps"></ol>
     </div>
 
     <div class="step">
-      <label>Számított értékek</label>
+      <label data-i18n>Számított értékek</label>
       <div class="derived" id="derived"></div>
       <div class="msg" id="msg"></div>
     </div>
 
     <div class="step">
-      <label>Nézet</label>
+      <label data-i18n>Nézet</label>
       <div class="btns">
-        <button id="b_iso" class="on">Izometrikus</button>
-        <button id="b_side">Oldal (zacskó síkja)</button>
-        <button id="b_front">Elöl</button>
-        <button id="b_house">Burkolat</button>
-        <button id="b_reset">Alaphelyzet</button>
+        <button id="b_iso" class="on" data-i18n>Izometrikus</button>
+        <button id="b_side" data-i18n>Oldal (zacskó síkja)</button>
+        <button id="b_front" data-i18n>Elöl</button>
+        <button id="b_house" data-i18n>Burkolat</button>
+        <button id="b_reset" data-i18n>Alaphelyzet</button>
       </div>
     </div>
-    <small class="foot">Fix adatok: zacskószélesség PE 180 / alu 220, ház 515×340 mm alapterület; a magasság a nagy zacskóhoz nő. Húzd az egérrel a forgatáshoz, görgő a zoomhoz.</small>
+    <small class="foot" data-i18n>Fix adatok: zacskószélesség PE 180 / alu 220, ház 515×340 mm alapterület; a magasság a nagy zacskóhoz nő. Húzd az egérrel a forgatáshoz, görgő a zoomhoz.</small>
   </aside>
 
   <section class="view" id="view">
-    <div class="hint">Forgatás: húzás · Zoom: görgő</div>
+    <div class="topbar"><span class="hint" data-i18n>Forgatás: húzás · Zoom: görgő</span><select id="lang" aria-label="Language"><option value="hu">HU</option><option value="en">EN</option><option value="it">IT</option></select></div>
     <div class="flags" id="flags"></div>
     <div class="ctl">
       <label class="switch" for="c_auto"><input type="checkbox" id="c_auto" checked><span class="track"></span>Autostart</label>
       <button id="c_toggle" class="bigbtn run" type="button">Ciklus megy</button>
     </div>
     <div class="legend">
-      <span><i style="background:#f08a24"></i>Izocianát (MDI)</span>
-      <span><i style="background:#8fd3ff"></i>Vízüveg</span>
-      <span><i style="background:#c9ced6"></i>Alu tasak</span>
-      <span><i style="background:#e4c266"></i>Klipszelő</span>
-      <span><i style="background:#e06060"></i>Hegesztő</span>
-      <span><i style="background:#f2f3f5;border:1px solid var(--line)"></i>Simítók</span>
-      <span><i style="background:#8a8f99"></i>Vákuum / hengerek</span>
-      <span><i style="background:#6f8fe0"></i>Töltőrudak</span>
+      <span><i style="background:#f08a24"></i><span data-i18n>Izocianát (MDI)</span></span>
+      <span><i style="background:#8fd3ff"></i><span data-i18n>Vízüveg</span></span>
+      <span><i style="background:#c9ced6"></i><span data-i18n>Alu tasak</span></span>
+      <span><i style="background:#e4c266"></i><span data-i18n>Klipszelő</span></span>
+      <span><i style="background:#e06060"></i><span data-i18n>Hegesztő</span></span>
+      <span><i style="background:#f2f3f5;border:1px solid var(--line)"></i><span data-i18n>Simítók</span></span>
+      <span><i style="background:#8a8f99"></i><span data-i18n>Vákuum / hengerek</span></span>
+      <span><i style="background:#6f8fe0"></i><span data-i18n>Töltőrudak</span></span>
     </div>
   </section>
 </div>
@@ -131,6 +133,16 @@ small.foot{color:var(--muted);font-size:11.5px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (function(){
+  // ---------- i18n ----------
+  const I18N = {en:{"MIA konfigurátor": "MIA configurator", "Burst pouch töltő–klipszelő–hegesztő. Sematikus térbeli elrendezés a kiszerelés-preset alapján.": "Burst pouch filling, clipping and sealing machine. Schematic 3D layout driven by the package-size preset.", "Kiszerelés": "Package size", "Kicsi zacskó (1 l alatt)": "Small pouch (under 1 l)", "Nagy zacskó (1 l és felette)": "Large pouch (1 l and above)", "A kiszerelés választja a zacskó-konfigurációt; a klipsz- és hegesztési vonal a presetből jön.": "The package size selects the pouch configuration; the clip and weld lines come from the preset.", "Ciklus animáció": "Cycle animation", "Sebesség": "Speed", "Számított értékek": "Calculated values", "Nézet": "View", "Izometrikus": "Isometric", "Oldal (zacskó síkja)": "Side (pouch plane)", "Elöl": "Front", "Burkolat": "Housing", "Alaphelyzet": "Reset", "Fix adatok: zacskószélesség PE 180 / alu 220, ház 515×340 mm alapterület; a magasság a nagy zacskóhoz nő. Húzd az egérrel a forgatáshoz, görgő a zoomhoz.": "Fixed data: pouch width PE 180 / alu 220, housing footprint 515×340 mm; the height is sized for the large pouch. Drag to rotate, scroll to zoom.", "Forgatás: húzás · Zoom: görgő": "Rotate: drag · Zoom: scroll", "Ciklus megy": "Cycle running", "Start": "Start", "Izocianát (MDI)": "Isocyanate (MDI)", "Vízüveg": "Water glass", "Alu tasak": "Alu pouch", "Klipszelő": "Clipper", "Hegesztő": "Sealer", "Simítók": "Smoothers", "Vákuum / hengerek": "Vacuum / cylinders", "Töltőrudak": "Fill tubes", "Kicsi zacskó": "Small pouch", "Nagy zacskó": "Large pouch", "Konfiguráció": "Configuration", "PE zacskó": "PE pouch", "Izo töltési magasság": "ISO fill height", "Vízüveg töltési magasság": "Water glass fill height", "Izo cső / löket": "ISO tube / stroke", "Vízüveg cső / löket": "Water glass tube / stroke", " mm (fix)": " mm (fixed)", "Izo henger teteje (lent)": "ISO cylinder top (down)", "Vízüveg henger teteje (lent)": "Water glass cylinder top (down)", "Gépmagasság (nagy zacskóra méretezve)": "Machine height (sized for the large pouch)", "Hegesztés a zacskó aljától": "Weld from the pouch bottom", "Alu tasak a klipsz felett": "Alu pouch above the clip", "PE szabad perem a hegesztés felett": "Free PE margin above the weld", "Izo szint és a klipsz között": "ISO level to clip", "Vízüveg szint és a hegesztés között": "Water glass level to weld", "Izo csővég fent, a PE tetejéhez": "ISO tube tip up, vs PE top", "Vízüveg csővég fent, a PE tetejéhez": "Water glass tube tip up, vs PE top", "A töltési szint túl közel van a klipsz/hegesztés vonalához (izo: {a} mm, vízüveg: {b} mm).": "Fill level too close to the clip/weld line (ISO: {a} mm, water glass: {b} mm).", "A hegesztési vonal túl közel van a PE zacskó tetejéhez ({a} mm): a vákuumkorongoknak és a töltőcsőnek nincs helye.": "Weld line too close to the PE pouch top ({a} mm): no room for the suction cups and the fill tube.", "A klipsz az alu tasak tetejénél vagy felette van: a klipsz nem fogja az alufóliát.": "The clip is at or above the alu pouch top: it does not grip the alu foil.", "A klipsz mélyen az alu tasakban van ({a} mm fólia marad felette); a kinyúló PE rész rövid.": "The clip sits deep in the alu pouch ({a} mm of foil above it); the protruding PE part is short.", "Elrendezés rendben: {a} mm alufólia a klipsz felett, {b} mm PE perem a hegesztés felett.": "Layout OK: {a} mm alu foil above the clip, {b} mm PE margin above the weld.", "{n} confignál az izo cső beleér az anyagba ({a} mm)": "At {n} the ISO tube dips into the material ({a} mm)", "{n} confignál a vízüveg cső beleér az anyagba ({a} mm)": "At {n} the water glass tube dips into the material ({a} mm)", "Klipszek behelyezése oldalról (a fiókra merőlegesen)": "Insert the clips from the side (perpendicular to the drawer)", "Klipszek betolása a helyükre (a fiókkal párhuzamosan)": "Push the clips into place (parallel to the drawer)", "Fiók betolása (tasak bent, klipszek a klipszelőben)": "Push the drawer in (pouch loaded, clips in the clipper)", "Vákuumkorongok rácuppannak": "Suction cups grip the pouch", "Zacskó szétnyitása: Ø90 henger középen, szélek behúzva": "Pouch opens: Ø90 cylinder in the middle, edges pulled in", "Izo töltőcső le (475 mm)": "ISO fill tube down (475 mm)", "Izocianát töltése": "Isocyanate filling", "Izo töltőcső fel": "ISO fill tube up", "Klipszelés (két henger, 3+3 kN): a zacskó laposra nyomva a klipsz síkjában": "Clipping (two cylinders, 3+3 kN): pouch pressed flat in the clip plane", "Klipszelő nyit, a klipsz térelválasztó marad": "Clipper opens, the clip stays as a divider", "Vízüveg töltőcső le (140 mm)": "Water glass fill tube down (140 mm)", "Vízüveg töltése": "Water glass filling", "Vízüveg töltőcső fel": "Water glass fill tube up", "Hegesztés (5 mm sáv, fűtőszál): a zacskó laposra nyomva a hegesztés síkjában": "Sealing (5 mm band, heating wire): pouch pressed flat in the weld plane", "Hegesztő nyit": "Sealer opens", "Vákuum elenged": "Vacuum releases", "Fiók kihúzása, a kész (teli) termék kivétele": "Drawer out, finished (filled) product removed", "Új tasak behelyezése": "New pouch loaded"},
+    it:{"MIA konfigurátor": "Configuratore MIA", "Burst pouch töltő–klipszelő–hegesztő. Sematikus térbeli elrendezés a kiszerelés-preset alapján.": "Macchina per riempimento, clippatura e saldatura di burst pouch. Layout 3D schematico in base al preset del formato.", "Kiszerelés": "Formato", "Kicsi zacskó (1 l alatt)": "Sacchetto piccolo (sotto 1 l)", "Nagy zacskó (1 l és felette)": "Sacchetto grande (1 l e oltre)", "A kiszerelés választja a zacskó-konfigurációt; a klipsz- és hegesztési vonal a presetből jön.": "Il formato seleziona la configurazione del sacchetto; le linee di clip e saldatura derivano dal preset.", "Ciklus animáció": "Animazione del ciclo", "Sebesség": "Velocità", "Számított értékek": "Valori calcolati", "Nézet": "Vista", "Izometrikus": "Isometrica", "Oldal (zacskó síkja)": "Lato (piano del sacchetto)", "Elöl": "Fronte", "Burkolat": "Carrozzeria", "Alaphelyzet": "Ripristina", "Fix adatok: zacskószélesség PE 180 / alu 220, ház 515×340 mm alapterület; a magasság a nagy zacskóhoz nő. Húzd az egérrel a forgatáshoz, görgő a zoomhoz.": "Dati fissi: larghezza sacchetto PE 180 / alu 220, ingombro 515×340 mm; l’altezza è dimensionata per il sacchetto grande. Trascina per ruotare, scorri per lo zoom.", "Forgatás: húzás · Zoom: görgő": "Ruota: trascina · Zoom: scorri", "Ciklus megy": "Ciclo in corso", "Start": "Avvia", "Izocianát (MDI)": "Isocianato (MDI)", "Vízüveg": "Vetro solubile", "Alu tasak": "Busta in alluminio", "Klipszelő": "Clippatrice", "Hegesztő": "Saldatrice", "Simítók": "Lisciatori", "Vákuum / hengerek": "Vuoto / cilindri", "Töltőrudak": "Tubi di riempimento", "Kicsi zacskó": "Sacchetto piccolo", "Nagy zacskó": "Sacchetto grande", "Konfiguráció": "Configurazione", "PE zacskó": "Sacchetto PE", "Izo töltési magasság": "Altezza riempimento ISO", "Vízüveg töltési magasság": "Altezza riempimento vetro solubile", "Izo cső / löket": "Tubo / corsa ISO", "Vízüveg cső / löket": "Tubo / corsa vetro solubile", " mm (fix)": " mm (fisso)", "Izo henger teteje (lent)": "Sommità cilindro ISO (basso)", "Vízüveg henger teteje (lent)": "Sommità cilindro vetro solubile (basso)", "Gépmagasság (nagy zacskóra méretezve)": "Altezza macchina (dimensionata per il sacchetto grande)", "Hegesztés a zacskó aljától": "Saldatura dal fondo del sacchetto", "Alu tasak a klipsz felett": "Busta alu sopra la clip", "PE szabad perem a hegesztés felett": "Margine PE libero sopra la saldatura", "Izo szint és a klipsz között": "Tra livello ISO e clip", "Vízüveg szint és a hegesztés között": "Tra livello vetro solubile e saldatura", "Izo csővég fent, a PE tetejéhez": "Punta tubo ISO in alto, rispetto al bordo PE", "Vízüveg csővég fent, a PE tetejéhez": "Punta tubo vetro solubile in alto, rispetto al bordo PE", "A töltési szint túl közel van a klipsz/hegesztés vonalához (izo: {a} mm, vízüveg: {b} mm).": "Livello di riempimento troppo vicino alla linea di clip/saldatura (ISO: {a} mm, vetro solubile: {b} mm).", "A hegesztési vonal túl közel van a PE zacskó tetejéhez ({a} mm): a vákuumkorongoknak és a töltőcsőnek nincs helye.": "Linea di saldatura troppo vicina al bordo del sacchetto PE ({a} mm): non c’è spazio per le ventose e il tubo.", "A klipsz az alu tasak tetejénél vagy felette van: a klipsz nem fogja az alufóliát.": "La clip è al bordo della busta alu o sopra: non trattiene il foglio di alluminio.", "A klipsz mélyen az alu tasakban van ({a} mm fólia marad felette); a kinyúló PE rész rövid.": "La clip è molto in basso nella busta alu ({a} mm di foglio sopra); la parte PE sporgente è corta.", "Elrendezés rendben: {a} mm alufólia a klipsz felett, {b} mm PE perem a hegesztés felett.": "Layout corretto: {a} mm di alluminio sopra la clip, {b} mm di margine PE sopra la saldatura.", "{n} confignál az izo cső beleér az anyagba ({a} mm)": "Con {n} il tubo ISO entra nel materiale ({a} mm)", "{n} confignál a vízüveg cső beleér az anyagba ({a} mm)": "Con {n} il tubo vetro solubile entra nel materiale ({a} mm)", "Klipszek behelyezése oldalról (a fiókra merőlegesen)": "Inserimento delle clip di lato (perpendicolare al cassetto)", "Klipszek betolása a helyükre (a fiókkal párhuzamosan)": "Spinta delle clip in posizione (parallela al cassetto)", "Fiók betolása (tasak bent, klipszek a klipszelőben)": "Chiusura del cassetto (sacchetto inserito, clip nella clippatrice)", "Vákuumkorongok rácuppannak": "Le ventose aderiscono al sacchetto", "Zacskó szétnyitása: Ø90 henger középen, szélek behúzva": "Apertura del sacchetto: cilindro Ø90 al centro, bordi rientrati", "Izo töltőcső le (475 mm)": "Tubo ISO in basso (475 mm)", "Izocianát töltése": "Riempimento isocianato", "Izo töltőcső fel": "Tubo ISO in alto", "Klipszelés (két henger, 3+3 kN): a zacskó laposra nyomva a klipsz síkjában": "Clippatura (due cilindri, 3+3 kN): sacchetto appiattito nel piano della clip", "Klipszelő nyit, a klipsz térelválasztó marad": "La clippatrice si apre, la clip resta come separatore", "Vízüveg töltőcső le (140 mm)": "Tubo vetro solubile in basso (140 mm)", "Vízüveg töltése": "Riempimento vetro solubile", "Vízüveg töltőcső fel": "Tubo vetro solubile in alto", "Hegesztés (5 mm sáv, fűtőszál): a zacskó laposra nyomva a hegesztés síkjában": "Saldatura (banda 5 mm, filo riscaldante): sacchetto appiattito nel piano di saldatura", "Hegesztő nyit": "La saldatrice si apre", "Vákuum elenged": "Rilascio del vuoto", "Fiók kihúzása, a kész (teli) termék kivétele": "Apertura del cassetto, prelievo del prodotto finito (pieno)", "Új tasak behelyezése": "Inserimento nuovo sacchetto"}};
+  let lang='hu';
+  function t(k, v){ let s=(I18N[lang]&&I18N[lang][k])||k; if(v) for(const x in v) s=s.split('{'+x+'}').join(v[x]); return s; }
+  function translateStatic(){
+    document.querySelectorAll('[data-i18n]').forEach(el=>{ if(!el.dataset.key) el.dataset.key=el.textContent.trim(); el.textContent=t(el.dataset.key); });
+    document.querySelectorAll('[data-i18n-label]').forEach(el=>{ if(!el.dataset.key) el.dataset.key=el.getAttribute('label'); el.setAttribute('label', t(el.dataset.key)); });
+    document.title = t('MIA konfigurátor');
+  }
   // ---------- fixed geometry (mm) ----------
   const FIX = { W:515, D:340, H:1140, peW:180, peH:550, aluW:220, aluH:285, pouchZ0:200, clipLen:220, cupD:40, rodD:12 };
   // pouch configurations: the package size selects one
@@ -378,7 +390,7 @@ small.foot{color:var(--muted);font-size:11.5px}
   const A = {};   // animated objects: clipL/R, weldL/R, rodA/B, mdi, wg, geometry numbers
   function rebuild(){
     applyPreset(); buildFixed();
-    document.getElementById('preset').innerHTML = [['Konfiguráció', state.cfg.name],['bottom_To_klipsz', state.k+' mm'],['klipsz_To_weld', state.w+' mm'],['PE zacskó', FIX.peH+' × '+FIX.peW],['Alu tasak', FIX.aluH+' × '+FIX.aluW],['Izo töltési magasság', state.isoFill+' mm'],['Vízüveg töltési magasság', state.wgFill+' mm'],['Izo cső / löket', state.tubeA+' / '+state.strokeA+' mm (fix)'],['Vízüveg cső / löket', state.tubeB+' / '+state.strokeB+' mm (fix)'],['Izo henger teteje (lent)', Math.round(state.carA-12)+' mm'],['Vízüveg henger teteje (lent)', Math.round(state.carB-12)+' mm']]
+    document.getElementById('preset').innerHTML = [[t('Konfiguráció'), t(state.cfg.name)],['bottom_To_klipsz', state.k+' mm'],['klipsz_To_weld', state.w+' mm'],[t('PE zacskó'), FIX.peH+' × '+FIX.peW],[t('Alu tasak'), FIX.aluH+' × '+FIX.aluW],[t('Izo töltési magasság'), state.isoFill+' mm'],[t('Vízüveg töltési magasság'), state.wgFill+' mm'],[t('Izo cső / löket'), state.tubeA+' / '+state.strokeA+t(' mm (fix)')],[t('Vízüveg cső / löket'), state.tubeB+' / '+state.strokeB+t(' mm (fix)')],[t('Izo henger teteje (lent)'), Math.round(state.carA-12)+' mm'],[t('Vízüveg henger teteje (lent)'), Math.round(state.carB-12)+' mm']]
       .map(r=>'<span>'+r[0]+'</span><span>'+r[1]+'</span>').join('');
     while(dyn.children.length) dyn.remove(dyn.children[0]);
     while(drawerDyn.children.length) drawerDyn.remove(drawerDyn.children[0]);
@@ -428,23 +440,23 @@ small.foot{color:var(--muted);font-size:11.5px}
     // derived values + checks
     const d=document.getElementById('derived');
     const aluOver=FIX.aluH-state.k, weldFromBottom=state.k+state.w, headroom=FIX.peH-weldFromBottom, isoRoom=(state.k-8)-state.isoFill, wgRoom=(state.w-18)-state.wgFill, isoUp=(state.k-30+state.strokeA)-FIX.peH, wgUp=(state.k+state.w-10+state.strokeB)-FIX.peH;
-    d.innerHTML = [['Gépmagasság (nagy zacskóra méretezve)', FIX.H+' mm'],['Hegesztés a zacskó aljától', weldFromBottom+' mm'],['Alu tasak a klipsz felett', aluOver+' mm'],
-      ['PE szabad perem a hegesztés felett', headroom+' mm'],['Izo szint és a klipsz között', isoRoom+' mm'],['Vízüveg szint és a hegesztés között', wgRoom+' mm'],['Izo csővég fent, a PE tetejéhez', (isoUp>=0?'+':'')+isoUp+' mm'],['Vízüveg csővég fent, a PE tetejéhez', (wgUp>=0?'+':'')+wgUp+' mm']]
+    d.innerHTML = [[t('Gépmagasság (nagy zacskóra méretezve)'), FIX.H+' mm'],[t('Hegesztés a zacskó aljától'), weldFromBottom+' mm'],[t('Alu tasak a klipsz felett'), aluOver+' mm'],
+      [t('PE szabad perem a hegesztés felett'), headroom+' mm'],[t('Izo szint és a klipsz között'), isoRoom+' mm'],[t('Vízüveg szint és a hegesztés között'), wgRoom+' mm'],[t('Izo csővég fent, a PE tetejéhez'), (isoUp>=0?'+':'')+isoUp+' mm'],[t('Vízüveg csővég fent, a PE tetejéhez'), (wgUp>=0?'+':'')+wgUp+' mm']]
       .map(r=>'<span>'+r[0]+'</span><span>'+r[1]+'</span>').join('');
     const msg=document.getElementById('msg'); msg.className='msg';
-    if(isoRoom<10||wgRoom<10){ msg.classList.add('warn'); msg.textContent='A töltési szint túl közel van a klipsz/hegesztés vonalához (izo: '+isoRoom+' mm, vízüveg: '+wgRoom+' mm).'; }
-    else if(headroom<40){ msg.classList.add('warn'); msg.textContent='A hegesztési vonal túl közel van a PE zacskó tetejéhez ('+headroom+' mm): a vákuumkorongoknak és a töltőcsőnek nincs helye.'; }
-    else if(aluOver<10){ msg.classList.add('warn'); msg.textContent='A klipsz az alu tasak tetejénél vagy felette van: a klipsz nem fogja az alufóliát.'; }
-    else if(aluOver>60){ msg.classList.add('warn'); msg.textContent='A klipsz mélyen az alu tasakban van ('+aluOver+' mm fólia marad felette); a kinyúló PE rész rövid.'; }
-    else { msg.classList.add('ok'); msg.textContent='Elrendezés rendben: '+aluOver+' mm alufólia a klipsz felett, '+headroom+' mm PE perem a hegesztés felett.'; }
+    if(isoRoom<10||wgRoom<10){ msg.classList.add('warn'); msg.textContent=t('A töltési szint túl közel van a klipsz/hegesztés vonalához (izo: {a} mm, vízüveg: {b} mm).',{a:isoRoom,b:wgRoom}); }
+    else if(headroom<40){ msg.classList.add('warn'); msg.textContent=t('A hegesztési vonal túl közel van a PE zacskó tetejéhez ({a} mm): a vákuumkorongoknak és a töltőcsőnek nincs helye.',{a:headroom}); }
+    else if(aluOver<10){ msg.classList.add('warn'); msg.textContent=t('A klipsz az alu tasak tetejénél vagy felette van: a klipsz nem fogja az alufóliát.'); }
+    else if(aluOver>60){ msg.classList.add('warn'); msg.textContent=t('A klipsz mélyen az alu tasakban van ({a} mm fólia marad felette); a kinyúló PE rész rövid.',{a:aluOver}); }
+    else { msg.classList.add('ok'); msg.textContent=t('Elrendezés rendben: {a} mm alufólia a klipsz felett, {b} mm PE perem a hegesztés felett.',{a:aluOver,b:headroom}); }
     // flag any package size where a tube tip would end up inside the filled material in the DOWN position
     const flags=[];
     for(const [name,sz] of Object.entries(SIZES)){
       const c=CFG[sz.cfg], top=FIX.pouchZ0+c.peH, clip=FIX.pouchZ0+c.k, weld=clip+c.w;
       const isoTip=clip-30, isoLvl=FIX.pouchZ0+sz.iso;
       const wgTip=weld-10, wgLvl=clip+8+sz.wg;
-      if(isoTip<isoLvl) flags.push(name+' confignál az izo cső beleér az anyagba ('+(isoLvl-isoTip)+' mm)');
-      if(wgTip<wgLvl) flags.push(name+' confignál a vízüveg cső beleér az anyagba ('+(wgLvl-wgTip)+' mm)');
+      if(isoTip<isoLvl) flags.push(t('{n} confignál az izo cső beleér az anyagba ({a} mm)',{n:name,a:isoLvl-isoTip}));
+      if(wgTip<wgLvl) flags.push(t('{n} confignál a vízüveg cső beleér az anyagba ({a} mm)',{n:name,a:wgLvl-wgTip}));
     }
     document.getElementById('flags').innerHTML=flags.map(f=>'<span>'+f+'</span>').join('');
     applyPose(pose);
@@ -502,8 +514,8 @@ small.foot{color:var(--muted);font-size:11.5px}
   ];
   const anim = { running:false, paused:false, step:-1, t:0, gapLeft:0 };
   const stepList=document.getElementById('c_steps');
-  stepList.innerHTML = STEPS.map(s=>'<li>'+s.n+'</li>').join('');
-  const lis=[...stepList.children];
+  let lis=[];
+  function renderSteps(){ stepList.innerHTML = STEPS.map(s=>'<li>'+t(s.n)+'</li>').join(''); lis=[...stepList.children]; markStep(anim.step); }
   function markStep(i){ lis.forEach((li,j)=>{ li.className = j<i?'done': j===i?'on':''; }); }
   function startCycle(){ anim.paused=false; Object.assign(pose,{drawer:1,cups:0,cupsOpen:0,cupsOpenMax:0,rodA:0,rodB:0,mdi:0,wg:0,clip:0,weld:0,clipFlat:0,weldFlat:0,clipX:0,clipY:0,clipped:0}); anim.running=true; anim.step=0; anim.t=0; anim.gapLeft=0; markStep(0); setRodBtns(); }
   function stopCycle(){ anim.running=false; anim.paused=false; anim.step=-1; markStep(-1); Object.assign(pose, IDLE); applyPose(pose); }
@@ -515,7 +527,7 @@ small.foot{color:var(--muted);font-size:11.5px}
     if(u>=1){ anim.step++; anim.t=0; anim.gapLeft=gap; if(anim.step>=STEPS.length){ anim.step=0; Object.assign(pose,{drawer:1,mdi:0,wg:0,clipFlat:0,weldFlat:0,cupsOpenMax:0,clipX:0,clipY:0,clipped:0}); } markStep(anim.step); }
   }
   const toggle=document.getElementById('c_toggle');
-  function syncToggle(){ const running=anim.running&&!anim.paused; toggle.textContent=running?'Ciklus megy':'Start'; toggle.className='bigbtn '+(running?'run':'start'); }
+  function syncToggle(){ const running=anim.running&&!anim.paused; toggle.textContent=running?t('Ciklus megy'):t('Start'); toggle.className='bigbtn '+(running?'run':'start'); }
   toggle.addEventListener('click',()=>{ if(!anim.running) startCycle(); else anim.paused=!anim.paused; syncToggle(); });   // STOP pauses in place, START resumes
   for(const [id,fmt] of [['c_spd',v=>(+v).toFixed(2).replace(/\.?0+$/,'')+'×']]){
     const el=document.getElementById(id), out=document.getElementById(id+'_val'); el.addEventListener('input',()=>out.textContent=fmt(el.value)); out.textContent=fmt(el.value);
@@ -547,6 +559,12 @@ small.foot{color:var(--muted);font-size:11.5px}
   const auto=document.getElementById('c_auto');
   try{ const a=localStorage.getItem('mia_autostart'); if(a!==null) auto.checked=(a==='1'); }catch(e){}
   auto.addEventListener('change',()=>{ try{ localStorage.setItem('mia_autostart', auto.checked?'1':'0'); }catch(e){} });
-  rebuild(); setRodBtns(); if(auto.checked) startCycle(); syncToggle(); requestAnimationFrame(frame);
+  const langSel=document.getElementById('lang');
+  try{ const l=localStorage.getItem('mia_lang'); if(l&&I18N[l]||l==='hu'){ lang=l; } }catch(e){}
+  if(!['hu','en','it'].includes(lang)) lang='hu';
+  langSel.value=lang;
+  function applyLang(){ translateStatic(); renderSteps(); rebuild(); syncToggle(); }
+  langSel.addEventListener('change',()=>{ lang=langSel.value; try{ localStorage.setItem('mia_lang',lang); }catch(e){} applyLang(); });
+  translateStatic(); renderSteps(); rebuild(); setRodBtns(); if(auto.checked) startCycle(); syncToggle(); requestAnimationFrame(frame);
 })();
 </script>
