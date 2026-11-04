@@ -1,1 +1,23 @@
-<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="../assets/erd-logo.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/site.css"><title>Napló – MIA</title></head><body class="page"><section class="hero-page"><h1>Napló</h1><p>Az AI kihívás munkanaplója hamarosan ide kerül.</p></section><script src="../assets/i18n.js"></script><script src="../assets/site.js"></script></body></html>
+<!doctype html><html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="icon" href="../assets/erd-logo.svg" type="image/svg+xml"><link rel="stylesheet" href="../assets/site.css"><title>Napló – MIA</title>
+<style>
+.log{max-width:860px;font-size:17px;line-height:1.65}
+.log h1{display:none}
+.log h2{font-size:30px;margin:44px 0 12px}
+.log h3{font-size:21px;margin:30px 0 8px}
+.log table{border-collapse:collapse;width:100%;margin:12px 0;font-size:15px}
+.log th,.log td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+.log blockquote{margin:14px 0;padding:10px 16px;border-left:3px solid #2bb24c;background:#f1f3f5;border-radius:0 8px 8px 0}
+.log blockquote p{margin:0}
+.log code{background:#eef0f2;padding:1px 5px;border-radius:4px;font-size:.92em}
+.log a{text-decoration:underline;text-underline-offset:2px}
+.log hr{border:0;border-top:1px solid var(--rule);margin:28px 0}
+</style></head><body class="page">
+<section class="hero-page"><h1>Napló</h1><p>Így készült a MIA koncepció Claude-dal: két este Chatben, egy nap Claude Code-ban.</p>
+<div class="btn-row" style="margin-top:22px"><a class="btn btn--light" href="MIA_naplo.md" download>Napló letöltése (.md)</a><a class="btn btn--ghost" href="https://github.com/luihalasz/mia_ai_kihivas">GitHub</a></div></section>
+<section class="section log" id="log"><p>Betöltés…</p></section>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+<script>
+fetch('MIA_naplo.md').then(r => r.text()).then(md => { document.getElementById('log').innerHTML = marked.parse(md); })
+  .catch(() => { document.getElementById('log').innerHTML = '<p><a href="MIA_naplo.md">MIA_naplo.md</a></p>'; });
+</script>
+<script src="../assets/i18n.js"></script><script src="../assets/site.js"></script></body></html>
